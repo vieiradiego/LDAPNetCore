@@ -1,74 +1,78 @@
-﻿using Persistence.Interface;
-using Persistence.Model;
+﻿using AgentNetCore.Context;
+using AgentNetCore.Model;
+using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Linq;
 
-namespace AgentNetCore.Business
+namespace AgentNetCore.Service
 {
     public class GroupService : IGroupService
     {
-        private volatile int count;
+        private MySQLContext _context;
+
+        public GroupService(MySQLContext context)
+        {
+            _context = context;
+        }
 
         public Group Create(Group group)
         {
+            try
+            {
+                _context.Add(group);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
             return group;
-        }
-
-        public void Delete(long id)
-        {
-
         }
 
         public List<Group> FindAll()
         {
-            List<Group> groups = new List<Group>();
-            for (int i = 0; i < 8; i++)
-            {
-                Group group = MockGroups(i);
-                groups.Add(group);
-            }
-            return groups;
-        }
-
-        private Group MockGroups(int i)
-        {
-            return new Group
-            {
-                Id = IncrementAndGet(),
-                DisplayName = "",
-                EmailAddress = "",
-                SamAccountName = "",
-                ObjectSid = "",
-                Domain = ""
-            };
-        }
-
-        private long IncrementAndGet()
-        {
-            return Interlocked.Increment(ref count);
+            return _context.Groups.ToList();
         }
 
         public Group FindById(long id)
         {
-            return new Group
-            {
-                Id = IncrementAndGet(),
-                DisplayName = "",
-                EmailAddress = "",
-                SamAccountName = "",
-                ObjectSid = "",
-                Domain = ""
-            };
+            return _context.Groups.SingleOrDefault(p => p.Id.Equals(id));
         }
 
         public Group Update(Group group)
         {
+            if (!Exist(group.Id)) return new Group();
+
+            var result = _context.Groups.SingleOrDefault(p => p.Id.Equals(group.Id));
+            try
+            {
+                _context.Entry(result).CurrentValues.SetValues(group);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
             return group;
         }
 
-        List<Group> IGroupService.FindAll()
+        private bool Exist(long? id)
         {
-            throw new System.NotImplementedException();
+            return _context.Groups.Any(p => p.Id.Equals(id));
+        }
+        public void Delete(long id)
+        {
+            var result = _context.Groups.SingleOrDefault(p => p.Id.Equals(id));
+            try
+            {
+                if (result != null) _context.Groups.Remove(result);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }

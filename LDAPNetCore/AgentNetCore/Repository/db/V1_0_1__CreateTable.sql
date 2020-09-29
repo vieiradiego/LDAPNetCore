@@ -1,0 +1,52 @@
+CREATE TABLE `users` (
+						`Id` INT(10) AUTO_INCREMENT PRIMARY KEY,
+						`Name` VARCHAR(40) NULL DEFAULT NULL,
+						`LogonName` VARCHAR(40) NULL DEFAULT NULL,
+						`FirstName` VARCHAR(40) NULL DEFAULT NULL,
+						`DisplayName` VARCHAR(40) NULL DEFAULT NULL,
+						`Inicials` VARCHAR(10) NULL DEFAULT NULL,
+						`OfficePhone` VARCHAR(20) NULL DEFAULT NULL,
+						`MobilePhone` VARCHAR(20) NULL DEFAULT NULL,
+						`Description` VARCHAR(50) NULL DEFAULT NULL,
+						`Organization` VARCHAR(20) NULL DEFAULT NULL,
+						`Office` VARCHAR(30) NULL DEFAULT NULL,
+						`EmailAddress` VARCHAR(30) NULL DEFAULT NULL,
+						`PostalCode` VARCHAR(15) NULL DEFAULT NULL,
+						`Country` VARCHAR(50) NULL DEFAULT NULL,
+						`City` VARCHAR(50) NULL DEFAULT NULL,
+						`State` VARCHAR(50) NULL DEFAULT NULL,
+						`StreetAddress` VARCHAR(50) NULL DEFAULT NULL,
+						`Title` VARCHAR(50) NULL DEFAULT NULL,
+						`Departament` VARCHAR(50) NULL DEFAULT NULL,
+						`Company` VARCHAR(50) NULL DEFAULT NULL,
+						`Manager` VARCHAR(50) NULL DEFAULT NULL,
+						`EmployeeID` VARCHAR(25) NULL DEFAULT NULL,
+						`Enabled` BOOLEAN NULL DEFAULT NULL,
+						`AuthType` VARCHAR(20) NULL DEFAULT NULL,
+						`PasswordNotRequired` BOOLEAN NULL DEFAULT NULL,
+						`PasswordNeverExpires` BOOLEAN NULL DEFAULT NULL,
+						`CanNotChangePassword` BOOLEAN NULL DEFAULT NULL,
+						`ChangePasswordAtLogon` BOOLEAN NULL DEFAULT NULL,
+						`AccountPassword` VARCHAR(50) NULL DEFAULT NULL,
+						`AccountExpirationDate` DATE NULL DEFAULT NULL,
+						`PathDomain` VARCHAR(100) NULL DEFAULT NULL,
+						`SamAccountName` VARCHAR(50) NULL DEFAULT NULL
+						)
+ENGINE=InnoDB
+;
+CREATE TABLE `groups` (
+						`Id` INT(10) AUTO_INCREMENT PRIMARY KEY,
+						`DisplayName` VARCHAR(40) NULL DEFAULT NULL,
+						`EmailAddress` VARCHAR(30) NULL DEFAULT NULL,
+						`SamAccountName` VARCHAR(50) NULL DEFAULT NULL,
+						`ObjectSid` VARCHAR(50) NULL DEFAULT NULL,
+						`Domain` VARCHAR(50) NULL DEFAULT NULL
+						)
+ENGINE=InnoDB
+;
+CREATE TABLE `domains` (
+						`Id` INT(10) AUTO_INCREMENT PRIMARY KEY,
+						`Path` VARCHAR(256) NULL DEFAULT NULL
+						)
+ENGINE=InnoDB
+;

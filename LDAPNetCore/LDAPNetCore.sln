@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30225.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentNetCore", "AgentNetCore\AgentNetCore.csproj", "{55431FE9-BD6E-402F-B0A1-DAA4321F3BC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AgentNetCore", "AgentNetCore\AgentNetCore.csproj", "{55431FE9-BD6E-402F-B0A1-DAA4321F3BC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "APINetCore", "APINetCore\APINetCore.csproj", "{C719D201-1165-4FD3-B171-A7FA6956530B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Persistence", "Persistence\Persistence.csproj", "{6D29D0D2-224D-4E6A-B788-5C8C2432CC90}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "APINetCore", "APINetCore\APINetCore.csproj", "{C719D201-1165-4FD3-B171-A7FA6956530B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +21,6 @@ Global
 		{C719D201-1165-4FD3-B171-A7FA6956530B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C719D201-1165-4FD3-B171-A7FA6956530B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C719D201-1165-4FD3-B171-A7FA6956530B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6D29D0D2-224D-4E6A-B788-5C8C2432CC90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6D29D0D2-224D-4E6A-B788-5C8C2432CC90}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6D29D0D2-224D-4E6A-B788-5C8C2432CC90}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6D29D0D2-224D-4E6A-B788-5C8C2432CC90}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

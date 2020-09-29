@@ -1,15 +1,14 @@
-﻿using Persistence.Model;
+﻿using AgentNetCore.Model;
 using System.Collections.Generic;
 
-namespace Persistence.Interface
+namespace AgentNetCore.Service
 {
     public interface IUserService
     {
-        // Implementar todas as ações que estão nos casos de uso do TCC
         User Create(User user);
+        User Update(User user);
         User FindById(long id);
         List<User> FindAll();
-        User Update(User user);
         void Delete(long id);
     }
 }

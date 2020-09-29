@@ -1,47 +1,36 @@
-﻿using Persistence.Interface;
-using Persistence.Model;
+﻿using AgentNetCore.Model;
+using AgentNetCore.Service;
 using System.Collections.Generic;
 using System.Threading;
 
 
-namespace AgentNetCore.Business
+namespace AgentNetCore.Repository
 {
     public class DomainRepository : IDomainService
     {
-        private volatile int count;
+        public Domain Create(Domain domain)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Delete(long id)
+        {
+            throw new System.NotImplementedException();
+        }
 
         public List<Domain> FindAll()
         {
-            List<Domain> domains = new List<Domain>();
-            for (int i = 0; i < 8; i++)
-            {
-                Domain domain = MockDomains(i);
-                domains.Add(domain);
-            }
-            return domains;
-        }
-
-        private Domain MockDomains(int i)
-        {
-            return new Domain
-            {
-                Id = IncrementAndGet(),
-                Path = "" + i
-            };
-        }
-
-        private long IncrementAndGet()
-        {
-            return Interlocked.Increment(ref count);
+            throw new System.NotImplementedException();
         }
 
         public Domain FindById(long id)
         {
-            return new Domain
-            {
-                Id = 1,
-                Path = ""
-            };
+            throw new System.NotImplementedException();
+        }
+
+        public Domain Update(Domain domain)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

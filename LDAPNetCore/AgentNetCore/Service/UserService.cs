@@ -1,122 +1,79 @@
-﻿using Persistence.Interface;
-using Persistence.Model;
+﻿using AgentNetCore.Context;
+using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
-namespace AgentNetCore.Business
+namespace AgentNetCore.Service
 {
     public class UserService : IUserService
-    { 
-     private volatile int count;
-
-    public User Create(User user)
     {
-        return user;
-    }
+        private MySQLContext _context;
 
-    public void Delete(long id)
-    {
-
-    }
-
-    public List<User> FindAll()
-    {
-        List<User> users = new List<User>();
-        for (int i = 0; i < 8; i++)
+        public UserService(MySQLContext context)
         {
-            User user = MockUsers(i);
-            users.Add(user);
+            _context = context;
         }
-        return users;
-    }
 
-    private User MockUsers(int i)
-    {
-        return new User
+        public User Create(User user)
         {
-            Id = IncrementAndGet(),
-            Name = "User Name" + i,
-            FirstName = "User First Name" + i,
-            LogonName = "Logon Name" + i,
-            DisplayName = "Display Name" + i,
-            Inicials = "Inicials" + i,
-            OfficePhone = "Office Phone" + i,
-            MobilePhone = "Office Phone" + i,
-            Description = "Office Phone" + i,
-            Organization = "Office Phone" + i,
-            Office = "Office Phone" + i,
-            EmailAddress = "Office Phone" + i,
-            PostalCode = "Office Phone" + i,
-            Country = "Office Phone" + i,
-            City = "Office Phone" + i,
-            State = "Office Phone" + i,
-            StreetAddress = "Office Phone" + i,
-            Title = "Office Phone" + i,
-            Departament = "Office Phone" + i,
-            Manager = "Office Phone" + i,
-            EmployeeID = "Office Phone" + i,
-            Enabled = true,
-            Company = "Office Phone" + i,
-            AuthType = "Office Phone" + i,
-            PasswordNotRequired = false,
-            PasswordNeverExpires = true,
-            CanNotChangePassword = false,
-            ChangePasswordAtLogon = false,
-            AccountPassword = "Pass" + i,
-            AccountExpirationDate = DateTime.Now,
-            PathDomain = "Path" + i,
-            SamAccountName = "Sam" + i
-        };
-    }
+            try
+            {
+                _context.Add(user);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
 
-    private long IncrementAndGet()
-    {
-        return Interlocked.Increment(ref count);
-    }
-
-    public User FindById(long id)
-    {
-        return new User
+                throw ex;
+            }
+            return user;
+        }
+                
+        public List<User> FindAll()
         {
-            Id = 1,
-            Name = "User Name",
-            FirstName = "User First Name",
-            LogonName = "Logon Name",
-            DisplayName = "Display Name",
-            Inicials = "Inicials",
-            OfficePhone = "Office Phone",
-            MobilePhone = "Office Phone",
-            Description = "Office Phone",
-            Organization = "Office Phone",
-            Office = "Office Phone",
-            EmailAddress = "Office Phone",
-            PostalCode = "Office Phone",
-            Country = "Office Phone",
-            City = "Office Phone",
-            State = "Office Phone",
-            StreetAddress = "Office Phone",
-            Title = "Office Phone",
-            Departament = "Office Phone",
-            Manager = "Office Phone",
-            EmployeeID = "Office Phone",
-            Enabled = true,
-            Company = "Office Phone",
-            AuthType = "Office Phone",
-            PasswordNotRequired = false,
-            PasswordNeverExpires = true,
-            CanNotChangePassword = false,
-            ChangePasswordAtLogon = false,
-            AccountPassword = "Pass",
-            AccountExpirationDate = DateTime.Now,
-            PathDomain = "Path",
-            SamAccountName = "Sam"
-        };
-    }
+            return _context.Users.ToList();
+        }
 
-    public User Update(User user)
-    {
-        return user;
+        public User FindById(long id)
+        {
+            return _context.Users.SingleOrDefault(p => p.Id.Equals(id));
+        }
+
+        public User Update(User user)
+        {
+            if (!Exist(user.Id)) return new User();
+
+            var result = _context.Users.SingleOrDefault(p => p.Id.Equals(user.Id));
+            try
+            {
+                _context.Entry(result).CurrentValues.SetValues(user);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return user;
+        }
+
+        private bool Exist(long? id)
+        {
+            return _context.Users.Any(p => p.Id.Equals(id));
+        }
+        public void Delete(long id)
+        {
+            var result = _context.Users.SingleOrDefault(p => p.Id.Equals(id));
+            try
+            {
+                if (result != null) _context.Users.Remove(result);
+                _context.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
     }
-}
 }

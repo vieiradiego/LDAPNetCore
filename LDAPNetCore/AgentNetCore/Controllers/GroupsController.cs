@@ -1,6 +1,6 @@
 ﻿using AgentNetCore.Model;
+using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
-using Persistence.Interface;
 
 namespace AgentNetCore.Controllers
 {
@@ -35,12 +35,12 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this.groupService.Create(group));
         }
 
-        // PUT api/values/5
-        [HttpPut("{id}")]
+        // PUT api/values
+        [HttpPut]
         public IActionResult Put([FromBody] Group group)
         {
             if (group == null) return BadRequest();
-            return new ObjectResult(this.groupService.Create(group));
+            return new ObjectResult(this.groupService.Update(group));
         }
 
         // DELETE api/values/5

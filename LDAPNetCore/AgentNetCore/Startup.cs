@@ -1,39 +1,46 @@
-using AgentNetCore.Business;
+using AgentNetCore.Context;
+using AgentNetCore.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
+
 
 namespace AgentNetCore
 {
     public class Startup
     {
+        public IConfiguration _configuration { get; }
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
-
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             // Banco de Dados
 
-            // MYSQL
-            //var connection = Configuration["MySqlConnection:MySqlConnectionStriong"];
-            //services.AddDbContext<MySQLContext>(options => options.UseMySql(connection));
+            //MYSQL
+            // Implementação do banco Mysql
+            var connectionString = _configuration["MySqlConnection:MySqlConnectionString"];
+            services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
+
 
             // LDAP
             // Implementar AQUI.
             //
 
+            //services.AddApiVersioning();
             services.AddControllers();
-            //Dependency
-            services.AddScoped<Persistence.Interface.IUserService, UserService>();
-            services.AddScoped<Persistence.Interface.IDomainService, DomainService>();
-            services.AddScoped< Persistence.Interface.IGroupService, GroupService >();
+
+            //Dependencias
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDomainService, DomainService>();
+            services.AddScoped<IGroupService, GroupService >();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,6 +1,8 @@
 ﻿namespace AgentNetCore.Model
 {
-    public class Domain : Persistence.Model.Domain
+    public class Domain
     {
+        public long? Id { get; set; }
+        public string Path { get; set; }
     }
 }

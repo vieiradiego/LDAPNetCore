@@ -1,14 +1,14 @@
-﻿using Persistence.Model;
+﻿using AgentNetCore.Model;
 using System.Collections.Generic;
 
-namespace Persistence.Interface
+namespace AgentNetCore.Service
 {
     public interface IGroupService
     {
         Group Create(Group group);
+        Group Update(Group group);
         Group FindById(long id);
         List<Group> FindAll();
-        Group Update(Group group);
         void Delete(long id);
     }
 }
