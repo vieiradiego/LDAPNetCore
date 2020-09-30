@@ -3,6 +3,8 @@ using APINetCore.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 
 namespace APINetCore.Service
@@ -20,8 +22,8 @@ namespace APINetCore.Service
         {
             try
             {
-                _context.Add(user);
-                _context.SaveChanges();
+                // Implementar o uso de classe para consumir a API de Agente.
+                // Passar o user por parâmetro
             }
             catch (Exception ex)
             {
