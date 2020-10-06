@@ -1,40 +1,136 @@
-﻿using System.DirectoryServices.Protocols;
+﻿using AgentNetCore.Model;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.DirectoryServices;
+using System.DirectoryServices.Protocols;
 using System.Net;
-using System.Security;
 
 namespace AgentNetCore.Context
 {
 
     public class LDAPContext
     {
-        private const int _port = 389;
-        private const int _portSecurity = 636;
-        private string _targetServer;
-        private string _dn;
-        private LdapDirectoryIdentifier _identifier;
-        private NetworkCredential _creds;
-        private string _secureString;
-        private string _userName;
-        public LDAPContext(string targetServer, string dn)
+        private LdapConnection ldapConnection;
+        private string ldapServer;
+        private NetworkCredential credential;
+        private string targetOU;
+
+        public LDAPContext()
         {
-            _targetServer = targetServer; //"ldap.forumsys.com"
-            _dn = dn;                     // DN: ou=mathematicians,dc=example,dc=com
-            _identifier = new LdapDirectoryIdentifier(_targetServer, _port);
-            _userName = "cn=read-only-admin,dc=example,dc=com";
-            _secureString = "password";
-            _creds = new NetworkCredential(_userName, _secureString); //Credenciais do Usuário e Senha
-            LdapConnection _connection = new LdapConnection(_identifier, _creds)
+
+        }
+
+        public User Create(User user)
+        {
+            Open();
+            //Implementar
+            Close();
+            return user;
+        }
+        public void Update(User user)
+        {
+            Open();
+            //Implementar
+            Close();
+        }
+        public List<User> FindAll()
+        {
+            try
             {
-                AuthType = AuthType.Basic,
-                           SessionOptions = { ProtocolVersion = 3, SecureSocketLayer = true}
-            };
-            
-            //SearchRequest searchRequest = new SearchRequest("dn=example,dn=com", "(sn=Smith)", SearchScope.Subtree, null);
-            //LdapStyleUriParser ldapStyleUriParser = new LdapStyleUriParser();
-            //LdapSessionOptions ldapSessionOptions;
-            //LdapException ldapEx = new LdapException();
-            // string dvv = ldapSessionOptions.HostName;
+                // create LDAP connection object  
+
+                Open();
+
+                // create search object which operates on LDAP connection object  
+                // and set search object to only find the user specified  
+
+                DirectoryEntry dirEntry = new DirectoryEntry();
+                dirEntry.Path = "LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local";
+                dirEntry.AuthenticationType = AuthenticationTypes.Secure;
+                dirEntry.Username = "administrator";
+                dirEntry.Password = "Pitoca@1988.";
+
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = "(cn=" + "Diego Vieira" + ")";
+                // create results objects from search object  
+
+                SearchResult result = search.FindOne();
+
+                if (result != null)
+                {
+                    // user exists, cycle through LDAP fields (cn, telephonenumber etc.)  
+
+                    ResultPropertyCollection fields = result.Properties;
+
+                    foreach (String ldapField in fields.PropertyNames)
+                    {
+                        // cycle through objects in each field e.g. group membership  
+                        // (for many fields there will only be one object such as name)  
+
+                        foreach (Object myCollection in fields[ldapField])
+                            Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
+                    }
+                }
+
+                else
+                {
+                    // user does not exist  
+                    Console.WriteLine("User not found!");
+                }
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+
+
+            return null;
+        }
+        public void Delete(User user)
+        {
+            Open();
+            //Implementar
+            Close();
+        }
+
+        public void Open()
+        {
+            try
+            {
+                ldapServer = "192.168.0.99";
+                credential = new NetworkCredential("administrator", "Pitoca@1988.", "marveldomain.local");
+                targetOU = "cn=users,dc=marveldomain,dc=local";
+                // Create the new LDAP connection
+                ldapConnection = new LdapConnection(ldapServer);
+                ldapConnection.Credential = credential;
+                ldapConnection.SessionOptions.DomainName = "MarvelDomain.local";
+                ldapConnection.SessionOptions.AutoReconnect = true;
+                ldapConnection.SessionOptions.HostName = "MarvelServer1";
+                ldapConnection.SessionOptions.PingLimit = 9999;
+                ldapConnection.Bind();
+                
+
+                Console.WriteLine("LdapConnection is created successfully.");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+        }
+        public void Close()
+        {
+            try
+            {
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+
         }
     }
 }

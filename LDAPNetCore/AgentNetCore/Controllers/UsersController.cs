@@ -46,8 +46,6 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this.userService.Update(user));
         }
 
-
-
         // DELETE api/values/5
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)

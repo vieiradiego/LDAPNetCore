@@ -1,5 +1,6 @@
 ﻿using AgentNetCore.Context;
 using AgentNetCore.Model;
+using AgentNetCore.Repository;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,10 +11,12 @@ namespace AgentNetCore.Service
     public class UserService : IUserService
     {
         private MySQLContext _context;
-
+        private LDAPContext _LDAPContext;
+        
         public UserService(MySQLContext context)
         {
             _context = context;
+            _LDAPContext = new LDAPContext();
         }
 
         public User Create(User user)
@@ -21,18 +24,21 @@ namespace AgentNetCore.Service
             try
             {
                 _context.Add(user);
+                _LDAPContext.Create(user);
+                Console.WriteLine("User Added successfully");
                 _context.SaveChanges();
+                Console.WriteLine("Saved User successfully");
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
             return user;
         }
                 
         public List<User> FindAll()
         {
+            _LDAPContext.FindAll();
             return _context.Users.ToList();
         }
 

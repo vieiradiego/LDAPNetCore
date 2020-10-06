@@ -1,4 +1,5 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Context;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using System;
 using System.Collections.Generic;
@@ -6,11 +7,29 @@ using System.Threading;
 
 namespace AgentNetCore.Repository
 {
+    
     public class UserRepository : IUserService
     {
+        private MySQLContext _context;
+
+        public UserRepository(MySQLContext context)
+        {
+            _context = context;
+        }
         public User Create(User user)
         {
-            throw new NotImplementedException();
+            try
+            {
+                _context.Add(user);
+                Console.WriteLine("User Added successfully");
+                _context.SaveChanges();
+                Console.WriteLine("Saved User successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+            return user;
         }
 
         public void Delete(long id)
