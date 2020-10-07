@@ -23,6 +23,7 @@ namespace AgentNetCore.Service
         {
             try
             {
+                _LDAPContext.Create(user);
                 _context.Add(user);
                 _LDAPContext.Create(user);
                 Console.WriteLine("User Added successfully");
@@ -38,7 +39,7 @@ namespace AgentNetCore.Service
                 
         public List<User> FindAll()
         {
-            _LDAPContext.FindAll();
+            _LDAPContext.FindByName("Ghost Rider");
             return _context.Users.ToList();
         }
 

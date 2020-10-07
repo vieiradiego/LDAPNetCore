@@ -13,7 +13,6 @@ namespace AgentNetCore.Context
         private LdapConnection ldapConnection;
         private string ldapServer;
         private NetworkCredential credential;
-        private string targetOU;
         
         public LDAPConnect()
         {
@@ -25,7 +24,6 @@ namespace AgentNetCore.Context
             {
                 ldapServer = "192.168.0.99";
                 credential = new NetworkCredential("administrator", "Pitoca@1988.", "marveldomain.local");
-                targetOU = "OU=users,dc=marveldomain,dc=local";
                 // Create the new LDAP connection
                 ldapConnection = new LdapConnection(ldapServer);
                 ldapConnection.Credential = credential;
