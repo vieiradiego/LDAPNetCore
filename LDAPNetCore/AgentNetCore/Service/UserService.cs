@@ -24,6 +24,8 @@ namespace AgentNetCore.Service
             try
             {
                 _LDAPContext.Create(user);
+                _LDAPContext.ResetPassByEmail(user.EmailAddress);
+                
                 _context.Add(user);
                 _LDAPContext.Create(user);
                 Console.WriteLine("User Added successfully");
