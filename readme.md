@@ -1,21 +1,11 @@
 # LDAPNetCore
 
- _    ______  ___  ______ _   _      _   _____                
-| |   |  _  \/ _ \ | ___ \ \ | |    | | /  __ \               
-| |   | | | / /_\ \| |_/ /  \| | ___| |_| /  \/ ___  _ __ ___ 
-| |   | | | |  _  ||  __/| . ` |/ _ \ __| |    / _ \| '__/ _ \
-| |___| |/ /| | | || |   | |\  |  __/ |_| \__/\ (_) | | |  __/
-\_____/___/ \_| |_/\_|   \_| \_/\___|\__|\____/\___/|_|  \___|
-                                                              
-                                                           
-
 Universidade de Caxias do Sul
 Sistemas de Informação
 
 Diego Moreira Vieira
 
 Implementação de integração com o servidor de domínio através de API RESTful
-
 
 Trabalho de Conclusão de Curso apresentado como parte dos requisitos para a obtenção do título de Bacharel em Sistemas de Informação da Universidade de Caxias do Sul.
 Orientador: Prof. Msc. Alexandre Erasmo Krohn Nascimento
