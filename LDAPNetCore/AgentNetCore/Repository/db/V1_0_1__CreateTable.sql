@@ -10,7 +10,7 @@ CREATE TABLE `users` (
 						`Description` VARCHAR(50) NULL DEFAULT NULL,
 						`Organization` VARCHAR(20) NULL DEFAULT NULL,
 						`Office` VARCHAR(30) NULL DEFAULT NULL,
-						`EmailAddress` VARCHAR(30) NULL DEFAULT NULL,
+						`EmailAddress` VARCHAR(256) NULL DEFAULT NULL,
 						`PostalCode` VARCHAR(15) NULL DEFAULT NULL,
 						`Country` VARCHAR(50) NULL DEFAULT NULL,
 						`City` VARCHAR(50) NULL DEFAULT NULL,
@@ -30,14 +30,18 @@ CREATE TABLE `users` (
 						`AccountPassword` VARCHAR(50) NULL DEFAULT NULL,
 						`AccountExpirationDate` DATE NULL DEFAULT NULL,
 						`PathDomain` VARCHAR(100) NULL DEFAULT NULL,
-						`SamAccountName` VARCHAR(50) NULL DEFAULT NULL
+						`SamAccountName` VARCHAR(50) NULL DEFAULT NULL,
+						`DistinguishedName` VARCHAR(256) NULL DEFAULT NULL,
+						`DirectReports` VARCHAR(256) NULL DEFAULT NULL,
+						`MemberOf` VARCHAR(256) NULL DEFAULT NULL,
+						`UserAccountControl` VARCHAR(256) NULL DEFAULT NULL
 						)
 ENGINE=InnoDB
 ;
 CREATE TABLE `groups` (
 						`Id` INT(10) AUTO_INCREMENT PRIMARY KEY,
 						`DisplayName` VARCHAR(40) NULL DEFAULT NULL,
-						`EmailAddress` VARCHAR(30) NULL DEFAULT NULL,
+						`EmailAddress` VARCHAR(256) NULL DEFAULT NULL,
 						`SamAccountName` VARCHAR(50) NULL DEFAULT NULL,
 						`ObjectSid` VARCHAR(50) NULL DEFAULT NULL,
 						`Domain` VARCHAR(50) NULL DEFAULT NULL

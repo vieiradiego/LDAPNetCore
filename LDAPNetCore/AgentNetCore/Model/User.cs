@@ -4,7 +4,7 @@ namespace AgentNetCore.Model
 {
     public class User
     {
-        
+
 
         public long? Id { get; set; }
         public string Name { get; set; }
@@ -38,6 +38,9 @@ namespace AgentNetCore.Model
         public DateTime AccountExpirationDate { get; set; }
         public string PathDomain { get; set; }
         public string SamAccountName { get; set; }
-
+        public string DistinguishedName { get; set; }
+        public string DirectReports { get; set; }
+        public string MemberOf { get; set; }
+        public string UserAccountControl { get; set; }
     }
 }

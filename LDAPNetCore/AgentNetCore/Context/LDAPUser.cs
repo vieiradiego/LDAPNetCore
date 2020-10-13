@@ -1,66 +1,30 @@
 ﻿using AgentNetCore.Model;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.DirectoryServices;
-using System.DirectoryServices.Protocols;
-using System.Net;
+using System.DirectoryServices.AccountManagement;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 
 namespace AgentNetCore.Context
 {
-
-
-    public class LDAPContext
+    public class LDAPUser
     {
-        private LdapConnection _ldapConnection;
-        private string _ldapServer;
-        private NetworkCredential _credential;
-        private DirectoryEntry _dirEntry;
-
-
-        public LDAPContext()
+        LDAPConnect _connect;
+        DirectoryEntry _dirEntry;
+        public LDAPUser()
         {
-
+            _connect = new LDAPConnect();
             _dirEntry = new DirectoryEntry();
-            _dirEntry.Path = "LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local";
-            _dirEntry.AuthenticationType = AuthenticationTypes.Secure;
-            _dirEntry.Username = "administrator";
-            _dirEntry.Password = "IronMan2000.";
-            _credential = new NetworkCredential(_dirEntry.Username, "Pitoca@1988.", "marveldomain.local");
         }
 
-        public bool ResetPassByEmail(string email)
-        {
-
-            try
-            {
-                DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
-                DirectorySearcher ds = new DirectorySearcher(dirEntry);
-                SearchResult sr = ds.FindOne();
-                if (sr != null)
-                {
-                    dirEntry.Invoke("ChangePassword", new object[] { "Janete1988." });
-                    dirEntry.CommitChanges();
-                    dirEntry.Close();
-                    Console.WriteLine("\r\nPassword for " + email + " changed successfully");
-                }
-            }
-            catch (Exception e)
-            {
-
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-            return true;
-        }
-        public User Create(User user)
+        public User Add(User user)
         {
             try
             {
 
-                //new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
+                //DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
                 DirectoryEntry newUser = _dirEntry.Children.Add("CN=" + user.Name, "user");
                 newUser.Properties["samAccountName"].Value = user.SamAccountName;
                 newUser.Properties["givenName"].Value = user.FirstName;
@@ -88,7 +52,7 @@ namespace AgentNetCore.Context
                 newUser.Properties["title"].Value = user.Title;
                 newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
                 newUser.CommitChanges();
-                
+
                 int userAccountControlValue = (int)newUser.Properties["userAccountControl"].Value;
                 UserAccountControl userAccountControl = (UserAccountControl)userAccountControlValue;
                 newUser.Properties["userAccountControl"].Value = userAccountControl & UserAccountControl.NORMAL_ACCOUNT & UserAccountControl.DONT_EXPIRE_PASSWD;
@@ -105,23 +69,19 @@ namespace AgentNetCore.Context
         }
         public void Update(User user)
         {
-            Open();
-            //Implementar
-            Close();
+
         }
         public User FindByName(string name)
         {
             try
             {
                 User user = new User();
-                DirectoryEntry dirEntry = new DirectoryEntry();
-                dirEntry.Path = "LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local";
-                dirEntry.AuthenticationType = AuthenticationTypes.Secure;
-                dirEntry.Username = "administrator";
-                dirEntry.Password = "IronMan2000.";
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                _dirEntry.Path = _connect.Path;
+                _dirEntry.AuthenticationType = AuthenticationTypes.Secure;
+                _dirEntry.Username = _connect.User;
+                _dirEntry.Password = _connect.Pass;
+                DirectorySearcher search = new DirectorySearcher(_dirEntry);
                 search.Filter = "(cn=" + name + ")";
-
                 user = GetResult(search.FindOne());
                 return user;
             }
@@ -134,43 +94,16 @@ namespace AgentNetCore.Context
         }
         public void Delete(User user)
         {
-
-        }
-        public void Open()
-        {
-            try
+            UserPrincipal userp = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
+            if (userp != null)
             {
-                _ldapServer = "192.168.0.99";
-                // Create the new LDAP connection
-                _ldapConnection = new LdapConnection(_ldapServer);
-                _ldapConnection.Credential = _credential;
-                _ldapConnection.SessionOptions.DomainName = "MarvelDomain.local";
-                _ldapConnection.SessionOptions.AutoReconnect = true;
-                _ldapConnection.SessionOptions.HostName = "MarvelServer1";
-                _ldapConnection.SessionOptions.PingLimit = 9999;
-                _ldapConnection.Bind();
-                Console.WriteLine("LdapConnection is created successfully.");
+                userp.Delete();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-        }
-        public void Close()
-        {
-            try
-            {
-
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-
         }
 
         private User GetResult(SearchResult result)
         {
+            User user = new User();
             if (result != null)
             {
                 ResultPropertyCollection fields = result.Properties;
@@ -179,6 +112,87 @@ namespace AgentNetCore.Context
                     foreach (Object myCollection in fields[ldapField])
                     {
 
+                        switch (ldapField)
+                        {
+                            case "samaccountname":
+                                user.SamAccountName = myCollection.ToString();
+                                break;
+                            case "givenname":
+                                user.FirstName = myCollection.ToString();
+                                break;
+                            case "initials":
+                                user.Inicials = myCollection.ToString();
+                                break;
+                            case "c":
+                                user.Country = myCollection.ToString();
+                                break;
+                            case "cn":
+                                user.DisplayName = myCollection.ToString();
+                                break;
+                            case "company":
+                                user.Company = myCollection.ToString();
+                                break;
+                            case "department":
+                                user.Departament = myCollection.ToString();
+                                break;
+                            case "description":
+                                user.Description = myCollection.ToString();
+                                break;
+                            case "displayName":
+                                user.DisplayName = myCollection.ToString();
+                                break;
+                            case "distinguishedname":
+                                user.DistinguishedName = myCollection.ToString();
+                                break;
+                            case "adspath":
+                                user.PathDomain = myCollection.ToString();
+                                break;
+                            case "employeeid":
+                                user.EmployeeID = myCollection.ToString();
+                                break;
+                            case "l":
+                                user.City = myCollection.ToString();
+                                break;
+                            case "mail":
+                                user.EmailAddress = myCollection.ToString();
+                                break;
+                            case "manager":
+                                user.Manager = myCollection.ToString();
+                                break;
+                            case "mobile":
+                                user.MobilePhone = myCollection.ToString();
+                                break;
+                            case "name":
+                                user.Name = myCollection.ToString();
+                                break;
+                            case "o":
+                                user.Departament = myCollection.ToString();
+                                break;
+                            case "physicaldeliveryofficename":
+                                user.Office = myCollection.ToString();
+                                break;
+                            case "postalcode":
+                                user.PostalCode = myCollection.ToString();
+                                break;
+                            case "sn":
+                                user.Name = myCollection.ToString();
+                                break;
+                            case "st":
+                                user.State = myCollection.ToString();
+                                break;
+                            case "streetaddress":
+                                user.StreetAddress = myCollection.ToString();
+                                break;
+                            case "telephonenumber":
+                                user.OfficePhone = myCollection.ToString();
+                                break;
+                            case "title":
+                                user.Title = myCollection.ToString();
+                                break;
+                            case "userprincipalname":
+                                user.EmailAddress = myCollection.ToString();
+                                break;
+                        }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
                 }
@@ -188,21 +202,30 @@ namespace AgentNetCore.Context
             {
                 Console.WriteLine("User not found!");
             }
-            return null;
+            return user;
         }
-        public Computer Create(Computer computer)
+        public bool ResetPassByEmail(string email)
         {
-            return null;
-        }
 
-        public Group Create(Group group)
-        {
-            return null;
-        }
+            try
+            {
+                DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
+                DirectorySearcher ds = new DirectorySearcher(dirEntry);
+                SearchResult sr = ds.FindOne();
+                if (sr != null)
+                {
+                    dirEntry.Invoke("ChangePassword", new object[] { "Janete1988." });
+                    dirEntry.CommitChanges();
+                    dirEntry.Close();
+                    Console.WriteLine("\r\nPassword for " + email + " changed successfully");
+                }
+            }
+            catch (Exception e)
+            {
 
-        public Domain Create(Domain domain)
-        {
-            return null;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+            return true;
         }
 
         [Flags()]
@@ -341,8 +364,5 @@ namespace AgentNetCore.Context
             /// </summary>
             USE_AES_KEYS = 0x08000000
         }
-
     }
-
 }
-

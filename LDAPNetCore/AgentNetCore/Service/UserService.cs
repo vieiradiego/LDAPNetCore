@@ -3,6 +3,7 @@ using AgentNetCore.Model;
 using AgentNetCore.Repository;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.Protocols;
 using System.Linq;
 using System.Threading;
 
@@ -11,26 +12,23 @@ namespace AgentNetCore.Service
     public class UserService : IUserService
     {
         private MySQLContext _context;
-        private LDAPContext _LDAPContext;
+        private LDAPUser _ldapUser;
         
         public UserService(MySQLContext context)
         {
             _context = context;
-            _LDAPContext = new LDAPContext();
+            _ldapUser = new LDAPUser();
         }
 
         public User Create(User user)
         {
             try
             {
-                _LDAPContext.Create(user);
-                _LDAPContext.ResetPassByEmail(user.EmailAddress);
-                
+                //Ldap
+                _ldapUser.Add(user);
+                //MySql
                 _context.Add(user);
-                _LDAPContext.Create(user);
-                Console.WriteLine("User Added successfully");
                 _context.SaveChanges();
-                Console.WriteLine("Saved User successfully");
             }
             catch (Exception e)
             {
@@ -41,7 +39,7 @@ namespace AgentNetCore.Service
                 
         public List<User> FindAll()
         {
-            _LDAPContext.FindByName("Ghost Rider");
+            _ldapUser.FindByName("Ghost Rider");
             return _context.Users.ToList();
         }
 
@@ -76,6 +74,7 @@ namespace AgentNetCore.Service
             var result = _context.Users.SingleOrDefault(p => p.Id.Equals(id));
             try
             {
+                _ldapUser.Delete(FindById(id));
                 if (result != null) _context.Users.Remove(result);
                 _context.SaveChanges();
             }
