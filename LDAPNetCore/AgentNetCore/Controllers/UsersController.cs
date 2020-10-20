@@ -22,10 +22,10 @@ namespace AgentNetCore.Controllers
         }
 
         // GET api/users/1
-        [HttpGet("{id}")]
-        public IActionResult Get(long id)
+        [HttpGet("{email}")]
+        public IActionResult Get(string email)
         {
-            var person = this.userService.FindById(id);
+            var person = this.userService.FindByEmail(email);
             if (person == null) return NotFound();
             return Ok(person);
         }
@@ -47,10 +47,10 @@ namespace AgentNetCore.Controllers
         }
 
         // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{email}")]
+        public IActionResult Delete(string email)
         {
-            this.userService.Delete(id);
+            this.userService.Delete(email);
             return NoContent();
         }
     }

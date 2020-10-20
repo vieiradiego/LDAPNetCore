@@ -11,102 +11,169 @@ namespace AgentNetCore.Context
 {
     public class LDAPUser
     {
-        LDAPConnect _connect;
-        DirectoryEntry _dirEntry;
+        private LDAPConnect _connect;
+        private DirectoryEntry _dirEntry;
+        private UserPrincipal _userPrincipal;
+        private DirectorySearcher _search;
         public LDAPUser()
         {
             _connect = new LDAPConnect();
-            _dirEntry = new DirectoryEntry();
+            _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
+            _search = new DirectorySearcher(_dirEntry);
         }
 
-        public User Add(User user)
+        #region CRUD
+        public User Create(User user)
         {
             try
             {
-
-                //DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
-                DirectoryEntry newUser = _dirEntry.Children.Add("CN=" + user.Name, "user");
-                newUser.Properties["samAccountName"].Value = user.SamAccountName;
-                newUser.Properties["givenName"].Value = user.FirstName;
-                newUser.Properties["initials"].Value = user.Inicials;
-                newUser.Properties["c"].Value = user.Country;
-                newUser.Properties["cn"].Value = user.DisplayName;
-                newUser.Properties["company"].Value = user.Company;
-                newUser.Properties["department"].Value = user.Departament;
-                newUser.Properties["description"].Value = user.Description;
-                newUser.Properties["displayName"].Value = user.DisplayName;
-                newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.PathDomain;
-                newUser.Properties["employeeID"].Value = user.EmployeeID;
-                newUser.Properties["l"].Value = user.City;
-                newUser.Properties["mail"].Value = user.EmailAddress;
-                newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain;
-                newUser.Properties["mobile"].Value = user.MobilePhone;
-                newUser.Properties["name"].Value = user.Name;
-                newUser.Properties["o"].Value = user.Departament;
-                newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
-                newUser.Properties["postalCode"].Value = user.PostalCode;
-                newUser.Properties["sn"].Value = user.Name;
-                newUser.Properties["st"].Value = user.State;
-                newUser.Properties["streetAddress"].Value = user.StreetAddress;
-                newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
-                newUser.Properties["title"].Value = user.Title;
-                newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
-                newUser.CommitChanges();
-
-                int userAccountControlValue = (int)newUser.Properties["userAccountControl"].Value;
-                UserAccountControl userAccountControl = (UserAccountControl)userAccountControlValue;
-                newUser.Properties["userAccountControl"].Value = userAccountControl & UserAccountControl.NORMAL_ACCOUNT & UserAccountControl.DONT_EXPIRE_PASSWD;
-                newUser.CommitChanges();
-                _dirEntry.Close();
-                newUser.Close();
+                return SetProperties(user);
             }
             catch (Exception e)
             {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                if (e.Message.Equals("The object already exists.\r\n"))
+                {
 
+                    Console.WriteLine("\r\nO Usuario ja existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
+                }
+                return user;
+            }
+        }
+        public User Create2(User user)
+        {
+            try
+            {
+                _userPrincipal = new UserPrincipal(_connect.Context);
+                _userPrincipal.SamAccountName = user.SamAccountName;
+                _userPrincipal.GivenName = user.FirstName;
+                _userPrincipal.MiddleName = user.Name;
+                _userPrincipal.Surname = user.Name;
+                _userPrincipal.Description = user.Description;
+                _userPrincipal.DisplayName = user.DisplayName;
+                _userPrincipal.EmployeeId = user.EmployeeID;
+                _userPrincipal.PasswordNotRequired = user.PasswordNotRequired;
+                _userPrincipal.AccountExpirationDate = user.AccountExpirationDate;
+                _userPrincipal.Enabled = user.Enabled;
+                _userPrincipal.Save();
+                user.DistinguishedName = _userPrincipal.DistinguishedName;
+
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
             return user;
         }
-        public void Update(User user)
+        public List<User> FindAll(string campo, string valor)
         {
+            try
+            {
+                List<User> userList = new List<User>();
+                _search.Filter = "(" + campo + "=" + valor + ")";
+                var usersResult = _search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
+                foreach (SearchResult userResult in usersResult)
+                {
+                    userList.Add(GetResult(userResult));
+                }
+                return userList;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return new List<User>();
+            }
 
+        }
+        private User FindOne(string campo, string valor)
+        {
+            try
+            {
+                User user = new User();
+                _search.Filter = "(" + campo + "=" + valor + ")";
+                user = GetResult(_search.FindOne());
+                return user;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+
+        }
+        public User FindByEmail(string email)
+        {
+            try
+            {
+                return FindOne("mail", email);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
         }
         public User FindByName(string name)
         {
             try
             {
-                User user = new User();
-                _dirEntry.Path = _connect.Path;
-                _dirEntry.AuthenticationType = AuthenticationTypes.Secure;
-                _dirEntry.Username = _connect.User;
-                _dirEntry.Password = _connect.Pass;
-                DirectorySearcher search = new DirectorySearcher(_dirEntry);
-                search.Filter = "(cn=" + name + ")";
-                user = GetResult(search.FindOne());
-                return user;
+                return FindOne("cn", name);
             }
-
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
-            return null;
+        }
+        public User Update(User user)
+        {
+            try
+            {
+                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
+                if (_userPrincipal != null)
+                {
+                    return SetProperties(user);
+                }
+                else
+                {
+                    Console.WriteLine("\r\nUser not identify:\r\n\t");
+                    return user;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return user;
+            }
         }
         public void Delete(User user)
         {
-            UserPrincipal userp = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
-            if (userp != null)
+            try
             {
-                userp.Delete();
+                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
+                if (_userPrincipal != null)
+                {
+                    _userPrincipal.Delete();
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+
+                if (e.Message == "The server is not operational")
+                {//The server is not operational.
+
+                }
             }
         }
+        #endregion
 
-        private User GetResult(SearchResult result)
+        #region GET
+        private User GetProperties(User user, ResultPropertyCollection fields)
         {
-            User user = new User();
-            if (result != null)
+            try
             {
-                ResultPropertyCollection fields = result.Properties;
                 foreach (String ldapField in fields.PropertyNames)
                 {
                     foreach (Object myCollection in fields[ldapField])
@@ -197,37 +264,147 @@ namespace AgentNetCore.Context
                     }
                 }
             }
-
-            else
+            catch (Exception e)
             {
-                Console.WriteLine("User not found!");
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return user;
             }
             return user;
         }
-        public bool ResetPassByEmail(string email)
+        private User GetResult(SearchResult result)
         {
-
+            User user = new User();
             try
             {
-                DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local", "administrator", "IronMan2000.");
-                DirectorySearcher ds = new DirectorySearcher(dirEntry);
-                SearchResult sr = ds.FindOne();
-                if (sr != null)
+                if (result != null)
                 {
-                    dirEntry.Invoke("ChangePassword", new object[] { "Janete1988." });
-                    dirEntry.CommitChanges();
-                    dirEntry.Close();
-                    Console.WriteLine("\r\nPassword for " + email + " changed successfully");
+                    ResultPropertyCollection fields = result.Properties;
+                    return GetProperties(user, fields);
+                }
+                else
+                {
+                    Console.WriteLine("User not found!");
                 }
             }
             catch (Exception e)
             {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
 
+            }
+            return user;
+        }
+
+        private List<User> GetResultList(SearchResult result)
+        {
+            List<User> userList = new List<User>();
+            if (result != null)
+            {
+                ResultPropertyCollection fields = result.Properties;
+
+                for (int i = 0; i < fields.Count; i++)
+                {
+                    User user = new User();
+
+                    userList.Add(GetProperties(user, fields));
+                }
+
+                return userList;
+            }
+
+            else
+            {
+                Console.WriteLine("User not found!");
+                return userList;
+            }
+        }
+        #endregion
+
+        #region SET
+        private User SetProperties(User user)
+        {
+            DirectoryEntry newUser = _dirEntry.Children.Add("CN=" + user.Name, "user");
+            newUser.Properties["samAccountName"].Value = user.SamAccountName;
+            newUser.Properties["givenName"].Value = user.FirstName;
+            newUser.Properties["initials"].Value = user.Inicials;
+            newUser.Properties["c"].Value = user.Country;
+            newUser.Properties["cn"].Value = user.DisplayName;
+            newUser.Properties["company"].Value = user.Company;
+            newUser.Properties["department"].Value = user.Departament;
+            newUser.Properties["description"].Value = user.Description;
+            newUser.Properties["displayName"].Value = user.DisplayName;
+            newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.PathDomain;
+            newUser.Properties["employeeID"].Value = user.EmployeeID;
+            newUser.Properties["l"].Value = user.City;
+            newUser.Properties["mail"].Value = user.EmailAddress;
+            newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain;
+            newUser.Properties["mobile"].Value = user.MobilePhone;
+            newUser.Properties["name"].Value = user.Name;
+            newUser.Properties["o"].Value = user.Departament;
+            newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
+            newUser.Properties["postalCode"].Value = user.PostalCode;
+            newUser.Properties["sn"].Value = user.Name;
+            newUser.Properties["st"].Value = user.State;
+            newUser.Properties["streetAddress"].Value = user.StreetAddress;
+            newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
+            newUser.Properties["title"].Value = user.Title;
+            newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
+            newUser.CommitChanges();
+            SetEnable(newUser);
+            newUser.CommitChanges();
+            _dirEntry.Close();
+            newUser.Close();
+            return FindByEmail(user.EmailAddress);
+        }
+        private void SetEnable(DirectoryEntry user)
+        {
+            try
+            {
+                int userAccountControlValue = (int)user.Properties["userAccountControl"].Value;
+                user.Properties["userAccountControl"].Value = userAccountControlValue & ~0x2;
+
+                user.CommitChanges();
+                user.Close();
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+        }
+        private void SetDisable(DirectoryEntry user)
+        {
+            try
+            {
+                int userAccountControlValue = (int)user.Properties["userAccountControl"].Value;
+                user.Properties["userAccountControl"].Value = userAccountControlValue | ~0x2;
+                user.CommitChanges();
+                user.Close();
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+        }
+        private bool ResetPassByEmail(string email)
+        {
+            try
+            {
+                SearchResult _searchResult = _search.FindOne();
+                if (_searchResult != null)
+                {
+                    _dirEntry.Invoke("ChangePassword", new object[] { "Batman2000." });
+                    _dirEntry.CommitChanges();
+                    _dirEntry.Close();
+                }
+            }
+            catch (Exception e)
+            {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
             return true;
         }
+        #endregion
 
+        #region ENUM
         [Flags()]
         public enum UserAccountControl : int
         {
@@ -364,5 +541,6 @@ namespace AgentNetCore.Context
             /// </summary>
             USE_AES_KEYS = 0x08000000
         }
+        #endregion
     }
 }

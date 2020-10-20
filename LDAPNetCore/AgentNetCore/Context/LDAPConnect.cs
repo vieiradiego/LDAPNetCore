@@ -5,6 +5,7 @@ using System.DirectoryServices.Protocols;
 using System.Security.Permissions;
 using System.IO;
 using System.DirectoryServices.AccountManagement;
+using System.ComponentModel;
 
 namespace AgentNetCore.Context
 {
@@ -20,18 +21,61 @@ namespace AgentNetCore.Context
         private string _user;
         private string _pass;
         private string _domain;
-        private int _portNumber = 389;
+        private string _portNumber = "389";
+        private string _portNumberSec = "636";
+        private string _commonName;
+        private string _domainComponent;
+        private bool _sec;
 
         public LDAPConnect()
         {
-            _container = "cn=users,dc=marveldomain,dc=local";
             _user = "administrator";
             _pass = "IronMan2000.";
             _domain = "marveldomain.local";
             _ldapServer = "192.168.0.99";
-            _path = "LDAP://192.168.0.99:389/cn=users,dc=marveldomain,dc=local";
+            _container = "cn=users,dc=marveldomain,dc=local";
+            _path = "LDAP://192.168.0.99:" + _portNumber + "/cn=users,dc=marveldomain,dc=local";
             _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
-            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, _portNumber), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
+            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
+            Test();
+        }
+        public LDAPConnect(string commonName, string domain, string ldapServer ,bool sec)
+        {
+            _user = "administrator";
+            _pass = "IronMan2000.";
+            _domain = domain;
+            _ldapServer = ldapServer;
+            _commonName = commonName;
+            _sec = sec;
+            Container();
+            Sec();
+            _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
+            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
+            Test();
+        }
+
+        private void Container()
+        {
+            string[] d = _domain.Split(".");
+            if (_commonName != null)
+            {
+                _container = "cn=" + _commonName;
+            }
+            for (int i = 0; i < d.Length; i++)
+            {
+                _container = _container + ",dc=" + d[i];
+            }
+        }
+        private void Sec()
+        {
+            if (_sec)
+            {
+                _path = "LDAP://" + _ldapServer + ":" + _portNumberSec + "/" + _container;
+            }
+            else
+            {
+                _path = "LDAP://" + _ldapServer + ":" + _portNumber + "/" + _container;
+            }
         }
         public Boolean Test()
         {
@@ -78,7 +122,7 @@ namespace AgentNetCore.Context
         public string User { get => _user; }
         public string Pass { get => _pass; }
         public string Domain { get => _domain; }
-        public int PortNumber { get => _portNumber; }
+        public string PortNumber { get => _portNumber; }
         public PrincipalContext Context { get => _context; }
     }
 }
