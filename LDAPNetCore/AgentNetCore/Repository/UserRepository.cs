@@ -37,7 +37,17 @@ namespace AgentNetCore.Repository
             throw new NotImplementedException();
         }
 
+        public void Delete(string email)
+        {
+            throw new NotImplementedException();
+        }
+
         public List<User> FindAll()
+        {
+            throw new NotImplementedException();
+        }
+
+        public User FindByEmail(string email)
         {
             throw new NotImplementedException();
         }

@@ -16,7 +16,7 @@ namespace AgentNetCore.Context
         private DirectorySearcher _search;
         public LDAPGroup()
         {
-            _connect = new LDAPConnect();
+            _connect = new LDAPConnect("group", "marveldomain.local", "192.168.0.99", false);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
@@ -60,7 +60,30 @@ namespace AgentNetCore.Context
                 return group;
             }
         }
+
         public void Delete(Group group)
+        {
+            if (DirectoryEntry.Exists(_connect.Path + group.DisplayName))
+            {
+                try
+                {
+                    DirectoryEntry entry = new DirectoryEntry(_connect.Path + group.DisplayName);
+                    DirectoryEntry groupEntry = new DirectoryEntry(_connect.Path + group.DisplayName);
+                    entry.Children.Remove(groupEntry);
+                    groupEntry.CommitChanges();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                }
+            }
+            else
+            {
+                Console.WriteLine(_connect.Path + group.DisplayName + " doesn't exist");
+            }
+
+        }
+        public void Delete2(Group group)
         {
             try
             {

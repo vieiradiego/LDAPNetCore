@@ -115,7 +115,23 @@ namespace AgentNetCore.Context
             }
 
         }
-
+        public enum ObjectClass
+        {
+            user, group, computer
+        }
+        public enum ReturnType
+        {
+            distinguishedName, ObjectGUID
+        }
+        public static bool Exists(string objectPath)
+        {
+            bool found = false;
+            if (DirectoryEntry.Exists("LDAP://" + objectPath))
+            {
+                found = true;
+            }
+            return found;
+        }
         public LdapConnection Connection { get => _ldapConnection; }
         public string Server { get => _ldapServer; }
         public string Path { get => _path; }

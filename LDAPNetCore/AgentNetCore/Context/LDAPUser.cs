@@ -17,7 +17,7 @@ namespace AgentNetCore.Context
         private DirectorySearcher _search;
         public LDAPUser()
         {
-            _connect = new LDAPConnect();
+            _connect = new LDAPConnect("users", "marveldomain.local", "192.168.0.99", false);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
@@ -102,6 +102,27 @@ namespace AgentNetCore.Context
             }
 
         }
+        private User FindOne(string campo, string valor, string [] fields)
+        {
+            try
+            {
+
+                User user = new User();
+                _search.Filter = "(" + campo + "=" + valor + ")";
+                foreach (string atribute in fields)
+                {
+                    _search.PropertiesToLoad.Add(atribute);
+                }
+                user = GetResult(_search.FindOne());
+                return user;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+
+        }
         public User FindByEmail(string email)
         {
             try
@@ -125,6 +146,19 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
+        }
+        public User FindByName(string name, string[] fields)
+        {
+            try
+            {
+                
+            }
+
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception caught:\n\n" + e.ToString());
+            }
+            return null;
         }
         public User Update(User user)
         {
