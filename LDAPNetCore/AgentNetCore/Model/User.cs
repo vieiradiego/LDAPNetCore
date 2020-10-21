@@ -4,8 +4,8 @@ namespace AgentNetCore.Model
 {
     public class User
     {
-        public long? Id { get; set; }
         public string Name { get; set; }
+        public string Surname { get; set; }
         public string LogonName { get; set; }
         public string FirstName { get; set; }
         public string DisplayName { get; set; }
@@ -13,7 +13,6 @@ namespace AgentNetCore.Model
         public string OfficePhone { get; set; }
         public string MobilePhone { get; set; }
         public string Description { get; set; }
-        public string Organization { get; set; }
         public string Office { get; set; }
         public string EmailAddress { get; set; }
         public string PostalCode { get; set; }

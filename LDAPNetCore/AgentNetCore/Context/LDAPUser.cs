@@ -102,7 +102,7 @@ namespace AgentNetCore.Context
             }
 
         }
-        private User FindOne(string campo, string valor, string [] fields)
+        private User FindOne(string campo, string valor, string[] fields)
         {
             try
             {
@@ -151,7 +151,7 @@ namespace AgentNetCore.Context
         {
             try
             {
-                
+
             }
 
             catch (Exception e)
@@ -164,10 +164,10 @@ namespace AgentNetCore.Context
         {
             try
             {
-                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
+                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.SamAccountName);
                 if (_userPrincipal != null)
                 {
-                    return SetProperties(user);
+                    return UpdateProperties(user);
                 }
                 else
                 {
@@ -185,7 +185,7 @@ namespace AgentNetCore.Context
         {
             try
             {
-                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.EmailAddress);
+                _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.DistinguishedName);
                 if (_userPrincipal != null)
                 {
                     _userPrincipal.Delete();
@@ -217,6 +217,7 @@ namespace AgentNetCore.Context
                         {
                             case "samaccountname":
                                 user.SamAccountName = myCollection.ToString();
+                                user.LogonName = myCollection.ToString();
                                 break;
                             case "givenname":
                                 user.FirstName = myCollection.ToString();
@@ -276,7 +277,7 @@ namespace AgentNetCore.Context
                                 user.PostalCode = myCollection.ToString();
                                 break;
                             case "sn":
-                                user.Name = myCollection.ToString();
+                                user.Surname = myCollection.ToString();
                                 break;
                             case "st":
                                 user.State = myCollection.ToString();
@@ -361,11 +362,11 @@ namespace AgentNetCore.Context
             newUser.Properties["givenName"].Value = user.FirstName;
             newUser.Properties["initials"].Value = user.Inicials;
             newUser.Properties["c"].Value = user.Country;
-            newUser.Properties["cn"].Value = user.DisplayName;
+            newUser.Properties["cn"].Value = user.Name;
             newUser.Properties["company"].Value = user.Company;
             newUser.Properties["department"].Value = user.Departament;
             newUser.Properties["description"].Value = user.Description;
-            newUser.Properties["displayName"].Value = user.DisplayName;
+            newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
             newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.PathDomain;
             newUser.Properties["employeeID"].Value = user.EmployeeID;
             newUser.Properties["l"].Value = user.City;
@@ -376,12 +377,45 @@ namespace AgentNetCore.Context
             newUser.Properties["o"].Value = user.Departament;
             newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
             newUser.Properties["postalCode"].Value = user.PostalCode;
-            newUser.Properties["sn"].Value = user.Name;
+            newUser.Properties["sn"].Value = user.Surname;
             newUser.Properties["st"].Value = user.State;
             newUser.Properties["streetAddress"].Value = user.StreetAddress;
             newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
             newUser.Properties["title"].Value = user.Title;
             newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
+            newUser.CommitChanges();
+            SetEnable(newUser);
+            newUser.CommitChanges();
+            _dirEntry.Close();
+            newUser.Close();
+            return FindByEmail(user.EmailAddress);
+        }
+
+        private User UpdateProperties(User user)
+        {
+            _search.Filter = ("SamAccountName=" + user.SamAccountName);
+            DirectoryEntry newUser = (_search.FindOne()).GetDirectoryEntry();
+            newUser.Properties["givenName"].Value = user.FirstName;
+            newUser.Properties["initials"].Value = user.Inicials;
+            newUser.Properties["c"].Value = user.Country;
+            newUser.Properties["company"].Value = user.Company;
+            newUser.Properties["department"].Value = user.Departament;
+            newUser.Properties["description"].Value = user.Description;
+            newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
+            newUser.Properties["employeeID"].Value = user.EmployeeID;
+            newUser.Properties["l"].Value = user.City;
+            newUser.Properties["mail"].Value = user.EmailAddress;
+            newUser.Properties["mobile"].Value = user.MobilePhone;
+            newUser.Properties["o"].Value = user.Departament;
+            newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
+            newUser.Properties["postalCode"].Value = user.PostalCode;
+            newUser.Properties["sn"].Value = user.Surname;
+            newUser.Properties["st"].Value = user.State;
+            newUser.Properties["streetAddress"].Value = user.StreetAddress;
+            newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
+            newUser.Properties["title"].Value = user.Title;
+            newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain;
+            newUser.Rename("cn=" + user.Name);
             newUser.CommitChanges();
             SetEnable(newUser);
             newUser.CommitChanges();

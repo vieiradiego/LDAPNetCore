@@ -24,7 +24,6 @@ namespace AgentNetCore.Context
         private string _portNumber = "389";
         private string _portNumberSec = "636";
         private string _commonName;
-        private string _domainComponent;
         private bool _sec;
 
         public LDAPConnect()

@@ -8,7 +8,6 @@ namespace AgentNetCore.Context
     {
         private LDAPConnect _connect;
         private DirectoryEntry _dirEntry;
-        private Domain _Domain;
         private DirectorySearcher _search;
         public LDAPDomain()
         {
@@ -16,7 +15,7 @@ namespace AgentNetCore.Context
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
-        public User Read(User domain)
+        public Domain Read(Domain domain)
         {
             return null;
         }
