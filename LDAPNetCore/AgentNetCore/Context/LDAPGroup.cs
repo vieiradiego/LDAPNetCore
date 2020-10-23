@@ -16,7 +16,7 @@ namespace AgentNetCore.Context
         private DirectorySearcher _search;
         public LDAPGroup()
         {
-            _connect = new LDAPConnect("group", "marveldomain.local", "192.168.0.99", false);
+            _connect = new LDAPConnect("marveldomain.local", "192.168.0.99", false);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
@@ -28,61 +28,95 @@ namespace AgentNetCore.Context
             {
                 return SetProperties(group);
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 if (e.Message.Equals("The object already exists.\r\n"))
                 {
 
-                    Console.WriteLine("\r\nO Usuario ja existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
+                    Console.WriteLine("\r\nO Grupo já existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
                 return group;
             }
+        }
+
+        public Group Create2(Group group)
+        {
+            try
+            {
+                _groupPrincipal = new GroupPrincipal(_connect.Context);
+                _groupPrincipal.SamAccountName = group.SamAccountName;
+                _groupPrincipal.Name = group.Name;
+                _groupPrincipal.Description = group.Description;
+                _groupPrincipal.DisplayName = group.DisplayName;
+                _groupPrincipal.Save();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+            return group;
         }
         public Group Update(Group group)
         {
             try
             {
-                _groupPrincipal = GroupPrincipal.FindByIdentity(_connect.Context, group.DisplayName);
+                _groupPrincipal = GroupPrincipal.FindByIdentity(_connect.Context, group.SamAccountName);
                 if (_groupPrincipal != null)
                 {
-                    return SetProperties(group);
+                    return UpdateGroup(group);
                 }
                 else
                 {
                     Console.WriteLine("\r\nUser not identify:\r\n\t");
-                    return group;
+                    return null;
                 }
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return group;
+                return null;
             }
+        }
+
+        private Group UpdateGroup(Group group)
+        {
+            // Alterar para receber um Directory Entry
+            // Fazer função para alterar Login do Usuário 
+
+            _search.Filter = ("SamAccountName=" + group.SamAccountName);
+            DirectoryEntry newGroup = (_search.FindOne()).GetDirectoryEntry();
+            //newGroup.Properties["cn"].Value = group.SamAccountName;
+            newGroup.Properties["displayName"].Value = group.DisplayName;
+            newGroup.Properties["description"].Value = group.Description;
+            newGroup.Properties["mail"].Value = group.EmailAddress;
+            newGroup.Properties["managedBy"].Value = "CN=" + group.Manager + "," + group.PathDomain;
+            var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
+            newGroup.Properties["groupType"].Value = groupType;
+            newGroup.CommitChanges();
+            newGroup.Rename("cn=" + group.SamAccountName);
+            newGroup.CommitChanges();
+            _dirEntry.Close();
+            newGroup.Close();
+            return FindOne("SamAccountName", group.SamAccountName);
         }
 
         public void Delete(Group group)
         {
-            if (DirectoryEntry.Exists(_connect.Path + group.DisplayName))
+            try
             {
-                try
+                _groupPrincipal = GroupPrincipal.FindByIdentity(_connect.Context, group.SamAccountName);
+                if (_groupPrincipal != null)
                 {
-                    DirectoryEntry entry = new DirectoryEntry(_connect.Path + group.DisplayName);
-                    DirectoryEntry groupEntry = new DirectoryEntry(_connect.Path + group.DisplayName);
-                    entry.Children.Remove(groupEntry);
-                    groupEntry.CommitChanges();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                    _groupPrincipal.Delete();
                 }
             }
-            else
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
-                Console.WriteLine(_connect.Path + group.DisplayName + " doesn't exist");
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
-
         }
+
         public void Delete2(Group group)
         {
             try
@@ -93,7 +127,7 @@ namespace AgentNetCore.Context
                     _groupPrincipal.Delete();
                 }
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
 
@@ -103,13 +137,34 @@ namespace AgentNetCore.Context
                 }
             }
         }
-        public Group FindByName(string name)
+        public List<Group> FindAll(string campo, string valor)
         {
             try
             {
-                return FindOne("cn", name);
+                List<Group> groupList = new List<Group>();
+                _search.Filter = "(&(objectClass=group))";
+                var groupsResult = _search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
+                foreach (SearchResult groupResult in groupsResult)
+                {
+                    groupList.Add(GetResult(groupResult));
+                }
+                return groupList;
             }
             catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return new List<Group>();
+            }
+
+        }
+        public Group FindBySamName(string name)
+        {
+            try
+            {
+                return FindOne("samAccountName", name);
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
@@ -124,24 +179,44 @@ namespace AgentNetCore.Context
                 group = GetResult(_search.FindOne());
                 return group;
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
 
         }
+        public Group FindByEmail(string email)
+        {
+            try
+            {
+                return FindOne("mail", email);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
         #endregion
 
         #region SET
         private Group SetProperties(Group group)
         {
-            DirectoryEntry newGroup = _dirEntry.Children.Add("CN=" + group.DisplayName, "group");
+            DirectoryEntry newGroup = _dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
+            newGroup.Properties["cn"].Value = group.SamAccountName;
             newGroup.Properties["samAccountName"].Value = group.SamAccountName;
+            newGroup.Properties["displayName"].Value = group.DisplayName;
+            newGroup.Properties["description"].Value = group.Description;
+            newGroup.Properties["mail"].Value = group.EmailAddress;
+            newGroup.Properties["managedBy"].Value = "CN=" + group.Manager + "," + group.PathDomain;
+            var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
+            newGroup.Properties["groupType"].Value = groupType;
             newGroup.CommitChanges();
             _dirEntry.Close();
             newGroup.Close();
-            return FindByName(group.DisplayName);
+            return FindOne("SamAccountName", group.SamAccountName);
         }
         #endregion
 
@@ -158,15 +233,15 @@ namespace AgentNetCore.Context
                 }
                 else
                 {
-                    Console.WriteLine("User not found!");
+                    Console.WriteLine("Group not found!");
+                    return null;
                 }
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
+                return null;
             }
-            return group;
         }
         private Group GetProperties(Group group, ResultPropertyCollection fields)
         {
@@ -179,18 +254,39 @@ namespace AgentNetCore.Context
 
                         switch (ldapField)
                         {
+                            case "cn":
+                                group.DisplayName = myCollection.ToString();
+                                break;
+                            case "name":
+                                group.Name = myCollection.ToString();
+                                break;
                             case "samaccountname":
                                 group.SamAccountName = myCollection.ToString();
                                 break;
-                            case "givenname":
+                            case "displayName":
                                 group.DisplayName = myCollection.ToString();
+                                break;
+                            case "description":
+                                group.Description = myCollection.ToString();
+                                break;
+                            case "mail":
+                                group.EmailAddress = myCollection.ToString();
+                                break;
+                            case "managedby":
+                                group.Manager = myCollection.ToString();
+                                break;
+                            case "objectsid":
+                                group.ObjectSid = myCollection.ToString();
+                                break;
+                            case "adspath":
+                                group.PathDomain = myCollection.ToString();
                                 break;
                         }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
                 }
             }
-            catch (Exception e)
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return group;
@@ -198,5 +294,52 @@ namespace AgentNetCore.Context
             return group;
         }
         #endregion
+
+        public void AddUserToGroup(string userId, string groupName)
+        {
+            try
+            {
+                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "COMPANY"))
+                {
+                    GroupPrincipal group = GroupPrincipal.FindByIdentity(pc, groupName);
+                    group.Members.Add(pc, IdentityType.UserPrincipalName, userId);
+                    group.Save();
+                }
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+
+            }
+        }
+
+        public void RemoveUserFromGroup(string userId, string groupName)
+        {
+            try
+            {
+                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "COMPANY"))
+                {
+                    GroupPrincipal group = GroupPrincipal.FindByIdentity(pc, groupName);
+                    group.Members.Remove(pc, IdentityType.UserPrincipalName, userId);
+                    group.Save();
+                }
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+
+            }
+        }
+
+        public enum GroupType : uint
+        {//https://docs.microsoft.com/en-us/windows/win32/adschema/c-group
+            SYSTEM = 0x00000001,//1
+            GLOBAL = 0x00000002,//2
+            DOMAIN_LOCAL = 0x00000004,//4
+            UNIVERSAL = 0x00000008,//8
+            APP_BASIC = 0x00000010,//16
+            APP_QUERY = 0x00000020,//32
+            SECURITY = 0x80000000//2147483648
+        }
     }
 }

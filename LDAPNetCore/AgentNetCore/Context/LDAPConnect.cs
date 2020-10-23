@@ -38,7 +38,7 @@ namespace AgentNetCore.Context
             _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
             Test();
         }
-        public LDAPConnect(string commonName, string domain, string ldapServer ,bool sec)
+        public LDAPConnect(string commonName, string domain, string ldapServer, bool sec)
         {
             _user = "administrator";
             _pass = "IronMan2000.";
@@ -53,16 +53,42 @@ namespace AgentNetCore.Context
             Test();
         }
 
+        public LDAPConnect(string domain, string ldapServer, bool sec)
+        {
+            _user = "administrator";
+            _pass = "IronMan2000.";
+            _domain = domain;
+            _ldapServer = ldapServer;
+            _sec = sec;
+            Container();
+            Sec();
+            _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
+            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
+            Test();
+        }
+
         private void Container()
         {
             string[] d = _domain.Split(".");
             if (_commonName != null)
             {
                 _container = "cn=" + _commonName;
+                for (int i = 0; i < d.Length; i++)
+                {
+
+                    _container = _container + ",dc=" + d[i];
+                }
             }
-            for (int i = 0; i < d.Length; i++)
+            else
             {
-                _container = _container + ",dc=" + d[i];
+                for (int i = 0; i < d.Length; i++)
+                {
+                    _container = _container + "dc=" + d[i];
+                    if (d.Length != (i+1))
+                    {
+                        _container = _container + ",";
+                    }
+                }
             }
         }
         private void Sec()

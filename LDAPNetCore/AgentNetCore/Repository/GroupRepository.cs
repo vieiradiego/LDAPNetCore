@@ -12,7 +12,7 @@ namespace AgentNetCore.Repository
             throw new System.NotImplementedException();
         }
 
-        public void Delete(long id)
+        public void Delete(string email)
         {
             throw new System.NotImplementedException();
         }
@@ -22,7 +22,12 @@ namespace AgentNetCore.Repository
             throw new System.NotImplementedException();
         }
 
-        public Group FindById(long id)
+        public Group FindByEmail(string email)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Group FindBySamName(string samName)
         {
             throw new System.NotImplementedException();
         }

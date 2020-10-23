@@ -21,7 +21,7 @@ namespace AgentNetCore.Controllers
             return Ok(this.userService.FindAll());
         }
 
-        // GET api/users/1
+        // GET api/users/samName
         [HttpGet("{email}")]
         public IActionResult Get(string email)
         {

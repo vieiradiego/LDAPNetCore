@@ -40,7 +40,7 @@ namespace AgentNetCore.Service
 
         public User FindByName(string name)
         {
-            return _ldapUser.FindByEmail(name);
+            return _ldapUser.FindByName(name);
         }
 
         public User FindByEmail(string email)

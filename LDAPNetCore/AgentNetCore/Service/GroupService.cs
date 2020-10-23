@@ -9,46 +9,54 @@ namespace AgentNetCore.Service
     public class GroupService : IGroupService
     {
         private MySQLContext _context;
+        private LDAPGroup _ldapGroup;
 
         public GroupService(MySQLContext context)
         {
             _context = context;
+            _ldapGroup = new LDAPGroup();
         }
 
         public Group Create(Group group)
         {
             try
             {
-                _context.Add(group);
-                _context.SaveChanges();
+                return _ldapGroup.Create(group);
             }
             catch (Exception ex)
             {
 
                 throw ex;
             }
-            return group;
         }
 
         public List<Group> FindAll()
         {
-            return _context.Groups.ToList();
+            return _ldapGroup.FindAll("", "");
         }
 
-        public Group FindById(long id)
+        public Group FindBySamName(string name)
         {
-            return _context.Groups.SingleOrDefault(p => p.Id.Equals(id));
+            return _ldapGroup.FindBySamName(name);
+        }
+
+        public Group FindByEmail(string email)
+        {
+            return _ldapGroup.FindByEmail(email);
         }
 
         public Group Update(Group group)
         {
-            if (!Exist(group.Id)) return new Group();
-
-            var result = _context.Groups.SingleOrDefault(p => p.Id.Equals(group.Id));
             try
             {
-                _context.Entry(result).CurrentValues.SetValues(group);
-                _context.SaveChanges();
+                if (group != null)
+                {
+                    _ldapGroup.Update(group);
+                }
+                else
+                {
+                    return new Group();
+                }
             }
             catch (Exception ex)
             {
@@ -57,17 +65,26 @@ namespace AgentNetCore.Service
             return group;
         }
 
-        private bool Exist(long? id)
+        private bool Exist(string email)
         {
-            return _context.Groups.Any(p => p.Id.Equals(id));
+            if (_ldapGroup.FindByEmail(email) != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
-        public void Delete(long id)
+        public void Delete(string samName)
         {
-            var result = _context.Groups.SingleOrDefault(p => p.Id.Equals(id));
+            var result = _ldapGroup.FindBySamName(samName);
             try
             {
-                if (result != null) _context.Groups.Remove(result);
-                _context.SaveChanges();
+                if (result != null)
+                {
+                    _ldapGroup.Delete(FindBySamName(samName));
+                }
             }
             catch (Exception ex)
             {

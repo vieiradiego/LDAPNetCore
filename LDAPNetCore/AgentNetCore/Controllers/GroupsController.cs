@@ -19,10 +19,11 @@ namespace AgentNetCore.Controllers
             return Ok(this.groupService.FindAll());
         }
 
-        [HttpGet("{id}")] //GET api/group/id
-        public IActionResult Get(long id)
+        //GET api/group/samName
+        [HttpGet("{samName}")]
+        public IActionResult Get(string samName)
         {
-            var group = this.groupService.FindById(id);
+            var group = this.groupService.FindBySamName(samName);
             if (group == null) return NotFound();
             return Ok(group);
         }
@@ -44,10 +45,10 @@ namespace AgentNetCore.Controllers
         }
 
         // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        [HttpDelete("{samName}")]
+        public IActionResult Delete(string samName)
         {
-            this.groupService.Delete(id);
+            this.groupService.Delete(samName);
             return NoContent();
         }
     }

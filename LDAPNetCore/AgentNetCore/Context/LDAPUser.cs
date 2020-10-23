@@ -70,7 +70,7 @@ namespace AgentNetCore.Context
             try
             {
                 List<User> userList = new List<User>();
-                _search.Filter = "(" + campo + "=" + valor + ")";
+                _search.Filter = "(&(objectCategory=User)(objectClass=person))";
                 var usersResult = _search.FindAll();
                 List<SearchResult> results = new List<SearchResult>();
                 foreach (SearchResult userResult in usersResult)
@@ -121,7 +121,6 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
-
         }
         public User FindByEmail(string email)
         {
@@ -167,7 +166,7 @@ namespace AgentNetCore.Context
                 _userPrincipal = UserPrincipal.FindByIdentity(_connect.Context, user.SamAccountName);
                 if (_userPrincipal != null)
                 {
-                    return UpdateProperties(user);
+                    return UpdateUser(user);
                 }
                 else
                 {
@@ -194,11 +193,6 @@ namespace AgentNetCore.Context
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
-                if (e.Message == "The server is not operational")
-                {//The server is not operational.
-
-                }
             }
         }
         #endregion
@@ -390,8 +384,7 @@ namespace AgentNetCore.Context
             newUser.Close();
             return FindByEmail(user.EmailAddress);
         }
-
-        private User UpdateProperties(User user)
+        private User UpdateUser(User user)
         {
             _search.Filter = ("SamAccountName=" + user.SamAccountName);
             DirectoryEntry newUser = (_search.FindOne()).GetDirectoryEntry();
@@ -415,6 +408,7 @@ namespace AgentNetCore.Context
             newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
             newUser.Properties["title"].Value = user.Title;
             newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain;
+            newUser.CommitChanges();
             newUser.Rename("cn=" + user.Name);
             newUser.CommitChanges();
             SetEnable(newUser);
@@ -427,8 +421,10 @@ namespace AgentNetCore.Context
         {
             try
             {
+                var groupType = unchecked((int)(~UserAccountControl.ACCOUNTDISABLE));
+
                 int userAccountControlValue = (int)user.Properties["userAccountControl"].Value;
-                user.Properties["userAccountControl"].Value = userAccountControlValue & ~0x2;
+                user.Properties["userAccountControl"].Value = userAccountControlValue & groupType;
 
                 user.CommitChanges();
                 user.Close();
@@ -474,8 +470,17 @@ namespace AgentNetCore.Context
 
         #region ENUM
         [Flags()]
-        public enum UserAccountControl : int
-        {
+        public enum UserAccountControl : uint
+        {//https://docs.microsoft.com/en-us/windows/win32/adschema/c-user
+            // Lógica dos Binários
+            // & - 1 And 1 = 1
+            // & - 0 And 0 = 0
+            // & - 1 And 0 = 0
+            // 
+            // | - 1 Ou 0 = 1
+            // | - 1 Ou 1 = 1
+            // | - 0 Ou 0 = 0
+
             /// <summary>
             /// The logon script is executed. 
             ///</summary>
@@ -554,55 +559,55 @@ namespace AgentNetCore.Context
             /// <summary>
             /// The password for this account will never expire. 
             ///</summary>
-            DONT_EXPIRE_PASSWD = 0x00010000,
+            DONT_EXPIRE_PASSWD = 0x00010000,//65536
 
             /// <summary>
             /// This is an MNS logon account. 
             ///</summary>
-            MNS_LOGON_ACCOUNT = 0x00020000,
+            MNS_LOGON_ACCOUNT = 0x00020000,//131072
 
             /// <summary>
             /// The user must log on using a smart card. 
             ///</summary>
-            SMARTCARD_REQUIRED = 0x00040000,
+            SMARTCARD_REQUIRED = 0x00040000,//262144
 
             /// <summary>
             /// The service account (user or computer account), under which a service runs, is trusted for Kerberos delegation. Any such service 
             /// can impersonate a client requesting the service. 
             ///</summary>
-            TRUSTED_FOR_DELEGATION = 0x00080000,
+            TRUSTED_FOR_DELEGATION = 0x00080000,//524288
 
             /// <summary>
             /// The security context of the user will not be delegated to a service even if the service account is set as trusted for Kerberos delegation. 
             ///</summary>
-            NOT_DELEGATED = 0x00100000,
+            NOT_DELEGATED = 0x00100000,//1048576
 
             /// <summary>
             /// Restrict this principal to use only Data Encryption Standard (DES) encryption types for keys. 
             ///</summary>
-            USE_DES_KEY_ONLY = 0x00200000,
+            USE_DES_KEY_ONLY = 0x00200000,//2097152
 
             /// <summary>
             /// This account does not require Kerberos pre-authentication for logon. 
             ///</summary>
-            DONT_REQUIRE_PREAUTH = 0x00400000,
+            DONT_REQUIRE_PREAUTH = 0x00400000,//4194304
 
             /// <summary>
             /// The user password has expired. This flag is created by the system using data from the Pwd-Last-Set attribute and the domain policy. 
             ///</summary>
-            PASSWORD_EXPIRED = 0x00800000,
+            PASSWORD_EXPIRED = 0x00800000,//8388608
 
             /// <summary>
             /// The account is enabled for delegation. This is a security-sensitive setting; accounts with this option enabled should be strictly 
             /// controlled. This setting enables a service running under the account to assume a client identity and authenticate as that user to 
             /// other remote servers on the network.
             ///</summary>
-            TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION = 0x01000000,
+            TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION = 0x01000000,//16777216
 
             /// <summary>
             /// 
             /// </summary>
-            PARTIAL_SECRETS_ACCOUNT = 0x04000000,
+            PARTIAL_SECRETS_ACCOUNT = 0x04000000,//67108864
 
             /// <summary>
             /// 
