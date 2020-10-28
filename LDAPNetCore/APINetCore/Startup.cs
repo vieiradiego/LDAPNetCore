@@ -31,8 +31,8 @@ namespace APINetCore
 
             //MYSQL
             // Implementação do banco Mysql
-            var connectionString = _configuration["MySqlConnection:MySqlConnectionString"];
-            services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
+            var MySqlconnectionString = _configuration["MySqlConnection:MySqlConnectionString"];
+            services.AddDbContext<MySQLContext>(options => options.UseMySql(MySqlconnectionString));
 
 
             // LDAP

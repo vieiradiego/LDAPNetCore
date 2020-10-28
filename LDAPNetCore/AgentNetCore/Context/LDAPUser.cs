@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
+using System.DirectoryServices.ActiveDirectory;
+using System.DirectoryServices.Protocols;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -15,11 +17,12 @@ namespace AgentNetCore.Context
         private DirectoryEntry _dirEntry;
         private UserPrincipal _userPrincipal;
         private DirectorySearcher _search;
-        public LDAPUser()
+        public LDAPUser(string domain)
         {
-            _connect = new LDAPConnect("users", "marveldomain.local", "192.168.0.99", false);
+            _connect = new LDAPConnect(domain, LDAPConnect.ObjectCategory.user);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
+            
         }
 
         #region CRUD
@@ -146,19 +149,6 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User FindByName(string name, string[] fields)
-        {
-            try
-            {
-
-            }
-
-            catch (Exception e)
-            {
-                Console.WriteLine("Exception caught:\n\n" + e.ToString());
-            }
-            return null;
-        }
         public User Update(User user)
         {
             try
@@ -194,6 +184,30 @@ namespace AgentNetCore.Context
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
+        }
+        #endregion
+
+        #region AUTH
+        private bool Auth(string domainName, string userName, string password)
+        {
+            bool ret = false;
+
+            try
+            {
+                DirectoryEntry de = new DirectoryEntry("LDAP://" + domainName, userName, password);
+                DirectorySearcher dsearch = new DirectorySearcher(de);
+                SearchResult results = null;
+
+                results = dsearch.FindOne();
+
+                ret = true;
+            }
+            catch
+            {
+                ret = false;
+            }
+
+            return ret;
         }
         #endregion
 
@@ -422,10 +436,9 @@ namespace AgentNetCore.Context
             try
             {
                 var groupType = unchecked((int)(~UserAccountControl.ACCOUNTDISABLE));
-
                 int userAccountControlValue = (int)user.Properties["userAccountControl"].Value;
+                
                 user.Properties["userAccountControl"].Value = userAccountControlValue & groupType;
-
                 user.CommitChanges();
                 user.Close();
             }
@@ -448,6 +461,49 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
         }
+
+        public void UserChangeGroup(User user, Group oldGroup, Group newGroup)
+        {
+            AddGroupToUser(user, newGroup);
+            RemoveGroupToUser(user, oldGroup);
+        }
+
+        public void AddGroupToUser(List<User> userList, Group group)
+        {
+            foreach (var user in userList)
+            {
+                AddGroupToUser(user, group);
+            }
+        }
+
+        public void AddGroupToUser(User samUser, Group samGroup)
+        {
+            try
+            {
+                GroupPrincipal addGroup = GroupPrincipal.FindByIdentity(_connect.Context, samGroup.SamAccountName);
+                addGroup.Members.Add(_connect.Context, IdentityType.UserPrincipalName, samUser.SamAccountName);
+                addGroup.Save();
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+        }
+
+        public void RemoveGroupToUser(User samUser, Group samGroup)
+        {
+            try
+            {
+                GroupPrincipal addGroup = GroupPrincipal.FindByIdentity(_connect.Context, samGroup.SamAccountName);
+                addGroup.Members.Remove(_connect.Context, IdentityType.UserPrincipalName, samUser.SamAccountName);
+                addGroup.Save();
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+
+            }
+        }
         private bool ResetPassByEmail(string email)
         {
             try
@@ -458,13 +514,20 @@ namespace AgentNetCore.Context
                     _dirEntry.Invoke("ChangePassword", new object[] { "Batman2000." });
                     _dirEntry.CommitChanges();
                     _dirEntry.Close();
+                    return true;
                 }
+                else
+                {
+                    Console.WriteLine("\r\nUsuário não encontrado");
+                    return false;
+                }
+                
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
-            return true;
         }
         #endregion
 
@@ -480,6 +543,7 @@ namespace AgentNetCore.Context
             // | - 1 Ou 0 = 1
             // | - 1 Ou 1 = 1
             // | - 0 Ou 0 = 0
+            // [SCRIPT, ]
 
             /// <summary>
             /// The logon script is executed. 

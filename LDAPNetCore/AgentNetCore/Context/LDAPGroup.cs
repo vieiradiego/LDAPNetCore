@@ -14,9 +14,9 @@ namespace AgentNetCore.Context
         private DirectoryEntry _dirEntry;
         private GroupPrincipal _groupPrincipal;
         private DirectorySearcher _search;
-        public LDAPGroup()
+        public LDAPGroup(string domain)
         {
-            _connect = new LDAPConnect("marveldomain.local", "192.168.0.99", false);
+            _connect = new LDAPConnect(domain, LDAPConnect.ObjectCategory.group);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
@@ -158,11 +158,11 @@ namespace AgentNetCore.Context
             }
 
         }
-        public Group FindBySamName(string name)
+        public Group FindBySamName(string samName)
         {
             try
             {
-                return FindOne("samAccountName", name);
+                return FindOne("samAccountName", samName);
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
@@ -295,41 +295,7 @@ namespace AgentNetCore.Context
         }
         #endregion
 
-        public void AddUserToGroup(string userId, string groupName)
-        {
-            try
-            {
-                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "COMPANY"))
-                {
-                    GroupPrincipal group = GroupPrincipal.FindByIdentity(pc, groupName);
-                    group.Members.Add(pc, IdentityType.UserPrincipalName, userId);
-                    group.Save();
-                }
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
-            }
-        }
-
-        public void RemoveUserFromGroup(string userId, string groupName)
-        {
-            try
-            {
-                using (PrincipalContext pc = new PrincipalContext(ContextType.Domain, "COMPANY"))
-                {
-                    GroupPrincipal group = GroupPrincipal.FindByIdentity(pc, groupName);
-                    group.Members.Remove(pc, IdentityType.UserPrincipalName, userId);
-                    group.Save();
-                }
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
-            }
-        }
+        
 
         public enum GroupType : uint
         {//https://docs.microsoft.com/en-us/windows/win32/adschema/c-group

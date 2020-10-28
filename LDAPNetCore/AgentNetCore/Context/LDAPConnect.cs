@@ -1,153 +1,118 @@
-﻿using System;
-using System.Net;
+﻿using AgentNetCore.Model;
+using System;
+using System.Collections.Generic;
 using System.DirectoryServices;
-using System.DirectoryServices.Protocols;
-using System.Security.Permissions;
-using System.IO;
 using System.DirectoryServices.AccountManagement;
-using System.ComponentModel;
+using System.DirectoryServices.Protocols;
+using System.Linq;
+using System.Net;
 
 namespace AgentNetCore.Context
 {
     public class LDAPConnect
     {
 
-        PrincipalContext _context;
-
+        private MySQLContext _mysqlContext;
+        private PrincipalContext _principalContext;
         private LdapConnection _ldapConnection;
-        private string _ldapServer;
+        private List <Server> _ldapServer;
+        private Credential _credential;
         private string _container;
         private string _path;
-        private string _user;
-        private string _pass;
         private string _domain;
-        private string _portNumber = "389";
-        private string _portNumberSec = "636";
-        private string _commonName;
-        private bool _sec;
+        
 
-        public LDAPConnect()
+        public LDAPConnect(string domain, ObjectCategory objectCategory)
         {
-            _user = "administrator";
-            _pass = "IronMan2000.";
-            _domain = "marveldomain.local";
-            _ldapServer = "192.168.0.99";
-            _container = "cn=users,dc=marveldomain,dc=local";
-            _path = "LDAP://192.168.0.99:" + _portNumber + "/cn=users,dc=marveldomain,dc=local";
-            _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
-            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
-            Test();
-        }
-        public LDAPConnect(string commonName, string domain, string ldapServer, bool sec)
-        {
-            _user = "administrator";
-            _pass = "IronMan2000.";
             _domain = domain;
-            _ldapServer = ldapServer;
-            _commonName = commonName;
-            _sec = sec;
-            Container();
-            Sec();
-            _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
-            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
-            Test();
+            _mysqlContext = new MySQLContext();
+            _credential = new Credential(GetCredentials(domain));
+            _ldapServer = new List<Server>(GetServers(domain));
+            _container = Container(objectCategory, _domain);
+            _path = SetPath(GetServer(_ldapServer));
+            _principalContext = new PrincipalContext(ContextType.Domain, _domain, _container, _credential.User, _credential.Pass);
         }
 
-        public LDAPConnect(string domain, string ldapServer, bool sec)
+        private string Container(ObjectCategory objectCategory, string domain)
         {
-            _user = "administrator";
-            _pass = "IronMan2000.";
-            _domain = domain;
-            _ldapServer = ldapServer;
-            _sec = sec;
-            Container();
-            Sec();
-            _context = new PrincipalContext(ContextType.Domain, _domain, _container, _user, _pass);
-            _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(_ldapServer, Int16.Parse(_portNumber)), new NetworkCredential(_user, _pass, _domain), AuthType.Basic);
-            Test();
-        }
-
-        private void Container()
-        {
-            string[] d = _domain.Split(".");
-            if (_commonName != null)
+            string cont = "";
+            string[] d = domain.Split(".");
+            if (objectCategory == ObjectCategory.user)
             {
-                _container = "cn=" + _commonName;
+                cont = "cn=" + objectCategory;
                 for (int i = 0; i < d.Length; i++)
                 {
 
-                    _container = _container + ",dc=" + d[i];
+                    cont = cont + ",dc=" + d[i];
                 }
+                
             }
-            else
+            if (objectCategory == ObjectCategory.computer) 
+            {
+                
+            }
+            if (objectCategory == ObjectCategory.group) 
             {
                 for (int i = 0; i < d.Length; i++)
                 {
                     _container = _container + "dc=" + d[i];
-                    if (d.Length != (i+1))
+                    if (d.Length != (i + 1))
                     {
                         _container = _container + ",";
                     }
                 }
+                
             }
+            if (objectCategory == ObjectCategory.organizationalUnit) 
+            {
+                
+            }
+            return cont;
         }
-        private void Sec()
+        private string SetPath(Server server)
         {
-            if (_sec)
-            {
-                _path = "LDAP://" + _ldapServer + ":" + _portNumberSec + "/" + _container;
-            }
-            else
-            {
-                _path = "LDAP://" + _ldapServer + ":" + _portNumber + "/" + _container;
-            }
+           return "LDAP://" + server.Address + ":" + server.Port+ "/" + _container;
         }
-        public Boolean Test()
+        public Server GetServer(List<Server> servers)
         {
             try
             {
-                _ldapConnection.Bind();
-                Console.WriteLine("LdapConnection is created successfully.");
-                return true;
+                foreach (var server in servers)
+                {
+                    _ldapConnection = new LdapConnection(new LdapDirectoryIdentifier(server.Address, Int16.Parse(server.Port)), new NetworkCredential(_credential.User, _credential.Pass, _domain), AuthType.Basic);
+                    _ldapConnection.Bind();
+                    Console.WriteLine("LdapConnection is created successfully to server " + server.Address + ":" + server.Port);
+                    return server;
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return false;
+                
             }
+            return new Server();
         }
 
-        public void Open()
+        private List<Server> GetServers(string domain)
         {
-            try
-            {
+            return (List<Server>)_mysqlContext.Servers.ToList().Where(p =>p.Domain.Equals(domain));
+        }
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-        }
-        public void Close()
+        private Credential GetCredentials(string domain)
         {
-            try
-            {
+            return _mysqlContext.Credentials.SingleOrDefault(p => p.Domain.Equals(domain));
+        }
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
+        public enum ObjectCategory
+        {// Tipos de Objetos do LDAP
+            user, 
+            group, 
+            computer, 
+            organizationalUnit,
+            domain,
+            person
+        }
 
-        }
-        public enum ObjectClass
-        {
-            user, group, computer
-        }
-        public enum ReturnType
-        {
-            distinguishedName, ObjectGUID
-        }
         public static bool Exists(string objectPath)
         {
             bool found = false;
@@ -157,14 +122,13 @@ namespace AgentNetCore.Context
             }
             return found;
         }
+        
         public LdapConnection Connection { get => _ldapConnection; }
-        public string Server { get => _ldapServer; }
         public string Path { get => _path; }
-        public string User { get => _user; }
-        public string Pass { get => _pass; }
+        public string User { get => _credential.User; }
+        public string Pass { get => _credential.Pass; }
         public string Domain { get => _domain; }
-        public string PortNumber { get => _portNumber; }
-        public PrincipalContext Context { get => _context; }
+        public PrincipalContext Context { get => _principalContext; }
     }
 }
 

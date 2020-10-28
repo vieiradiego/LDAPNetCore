@@ -15,9 +15,8 @@ namespace AgentNetCore.Context
 
         }
         public MySQLContext(DbContextOptions<MySQLContext> options) : base(options) { }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Group> Groups { get; set; }
-        public DbSet<Domain> Domains { get; set; }
+        public DbSet<Server> Servers { get; set; }
+        public DbSet<Credential> Credentials { get; set; }
     }
 }
 

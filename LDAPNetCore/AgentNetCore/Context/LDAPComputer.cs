@@ -14,13 +14,13 @@ namespace AgentNetCore.Context
         private DirectoryEntry _dirEntry;
         private ComputerPrincipal _computerPrincipal;
         private DirectorySearcher _search;
-
-        public LDAPComputer()
+        public LDAPComputer(string domain)
         {
-            _connect = new LDAPConnect("computer", "marveldomain.local", "192.168.0.99", false);
+            _connect = new LDAPConnect(domain,LDAPConnect.ObjectCategory.computer);
             _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
             _search = new DirectorySearcher(_dirEntry);
         }
+
         #region CRUD
         public Computer Create(Computer computer)
         {

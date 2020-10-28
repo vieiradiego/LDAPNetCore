@@ -11,13 +11,11 @@ namespace AgentNetCore.Service
 {
     public class UserService : IUserService
     {
-        private MySQLContext _context;
         private LDAPUser _ldapUser;
 
-        public UserService(MySQLContext context)
+        public UserService(string domain)
         {
-            _context = context;
-            _ldapUser = new LDAPUser();
+            _ldapUser = new LDAPUser(domain);
         }
 
         public User Create(User user)
@@ -35,7 +33,9 @@ namespace AgentNetCore.Service
 
         public List<User> FindAll()
         {
-            return _ldapUser.FindAll("", "");
+            if (_ldapUser != null) 
+                return _ldapUser.FindAll("", "");
+            return new List<User>();
         }
 
         public User FindByName(string name)

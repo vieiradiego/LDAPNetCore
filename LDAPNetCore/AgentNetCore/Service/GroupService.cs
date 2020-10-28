@@ -8,13 +8,11 @@ namespace AgentNetCore.Service
 {
     public class GroupService : IGroupService
     {
-        private MySQLContext _context;
         private LDAPGroup _ldapGroup;
 
-        public GroupService(MySQLContext context)
+        public GroupService(string domain)
         {
-            _context = context;
-            _ldapGroup = new LDAPGroup();
+            _ldapGroup = new LDAPGroup(domain);
         }
 
         public Group Create(Group group)
