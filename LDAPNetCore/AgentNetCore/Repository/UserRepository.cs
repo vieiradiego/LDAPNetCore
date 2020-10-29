@@ -460,22 +460,56 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
         }
-
-        public void UserChangeGroup(User user, Group oldGroup, Group newGroup)
+        public List<User> UserChangeGroup(List<User> users, List<Group> newGroups, List<Group> oldGroups)
         {
-            AddGroupToUser(user, newGroup);
-            RemoveGroupToUser(user, oldGroup);
-        }
-
-        public void AddGroupToUser(List<User> userList, Group group)
-        {
-            foreach (var user in userList)
+            try
             {
-                AddGroupToUser(user, group);
+                List<User> refreshUsers = new List<User>();
+                foreach (var newGroup in newGroups)
+                {
+                    foreach (User user in users)
+                    {
+                        AddUserToGroup(user, newGroup);
+                        
+                    }
+                }
+                foreach (var oldGroup in oldGroups)
+                {
+                    foreach (User user in users)
+                    {
+                        RemoveUserToGroup(user, oldGroup);
+                    }
+                }
+                foreach (var user in users)
+                {
+                    refreshUsers.Add(FindByEmail(user.EmailAddress, user.PathDomain));
+                }
+                return refreshUsers;
             }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+
+        }
+        public User UserChangeGroup(User user, Group newGroup, Group oldGroup)
+        {
+            try
+            {
+                AddUserToGroup(user, newGroup);
+                RemoveUserToGroup(user, oldGroup);
+                return FindByEmail(user.EmailAddress, user.PathDomain);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+            
         }
 
-        public void AddGroupToUser(User user, Group group)
+        private void AddUserToGroup(User user, Group group)
         {
             try
             {
@@ -492,7 +526,7 @@ namespace AgentNetCore.Context
             }
         }
 
-        public void RemoveGroupToUser(User user, Group group)
+        private void RemoveUserToGroup(User user, Group group)
         {
             try
             {
@@ -509,18 +543,23 @@ namespace AgentNetCore.Context
 
             }
         }
-        private bool ResetPassByEmail(string email, string domain)
+        public bool ResetPassSamName(string domain, string samName, string newPass)
         {
             try
             {
                 ConnectRepository connect = new ConnectRepository(domain, ObjectApplication.Category.user);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                SearchResult _searchResult = search.FindOne();
-                if (_searchResult != null)
+                UserPrincipal userPrincipal = new UserPrincipal(connect.Context);
+                userPrincipal = (connect.Context, samName);
+                
+                if (userPrincipal != null)
                 {
-                    dirEntry.Invoke("ChangePassword", new object[] { "Batman2000." });
-                    dirEntry.CommitChanges();
+                    DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                    DirectorySearcher search = new DirectorySearcher(dirEntry);
+                    search.Filter = ("SamAccountName=" + samName);
+                    DirectoryEntry user = (search.FindOne()).GetDirectoryEntry();
+                    user.Invoke("ChangePassword", new object[] { newPass });
+                    user.CommitChanges();
+                    user.Close();
                     dirEntry.Close();
                     return true;
                 }
