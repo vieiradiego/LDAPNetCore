@@ -1,9 +1,10 @@
 ﻿using System;
+using System.DirectoryServices.AccountManagement;
 
 namespace AgentNetCore.Model
 {
     public class User
-    {
+    {   
         public string Name { get; set; }
         public string Surname { get; set; }
         public string LogonName { get; set; }

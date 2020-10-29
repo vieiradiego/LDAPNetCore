@@ -1,24 +1,16 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Application;
+using AgentNetCore.Model;
 using System;
-using System.Collections.Generic;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AgentNetCore.Context
 {
-    public class LDAPComputer
+    public class ComputerRepository
     {
-        private LDAPConnect _connect;
-        private DirectoryEntry _dirEntry;
-        private ComputerPrincipal _computerPrincipal;
-        private DirectorySearcher _search;
-        public LDAPComputer(string domain)
+        public ComputerRepository()
         {
-            _connect = new LDAPConnect(domain,LDAPConnect.ObjectCategory.computer);
-            _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
-            _search = new DirectorySearcher(_dirEntry);
+            
         }
 
         #region CRUD
@@ -26,7 +18,24 @@ namespace AgentNetCore.Context
         {
             try
             {
-                return SetProperties(computer);
+                ConnectRepository connect = new ConnectRepository();
+                ComputerPrincipal computerPrincipal = new ComputerPrincipal(connect.Context);
+                computerPrincipal = ComputerPrincipal.FindByIdentity(connect.Context, computer.SamAccountName);
+                if (computerPrincipal != null)
+                {
+                    DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                    DirectoryEntry newComputer = dirEntry.Children.Add("CN=" + computerPrincipal.SamAccountName, "computer");
+                    newComputer.Properties["samAccountName"].Value = computer.SamAccountName;
+                    newComputer.CommitChanges();
+                    dirEntry.Close();
+                    newComputer.Close();
+                    return FindByName(computer.PathDomain, computer.SamAccountName);
+                }
+                else
+                {
+                    Console.WriteLine("\r\nUser not identify:\r\n\t");
+                    return computer;
+                }
             }
             catch (Exception e)
             {
@@ -43,10 +52,18 @@ namespace AgentNetCore.Context
         {
             try
             {
-                _computerPrincipal = ComputerPrincipal.FindByIdentity(_connect.Context, computer.SamAccountName);
-                if (_computerPrincipal != null)
+                ConnectRepository connect = new ConnectRepository();
+                ComputerPrincipal computerPrincipal = new ComputerPrincipal(connect.Context);
+                computerPrincipal = ComputerPrincipal.FindByIdentity(connect.Context, computer.SamAccountName);
+                if (computerPrincipal != null)
                 {
-                    return SetProperties(computer);
+                    DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                    DirectoryEntry newComputer = dirEntry.Children.Add("CN=" + computerPrincipal.SamAccountName, "computer");
+                    newComputer.Properties["samAccountName"].Value = computer.SamAccountName;
+                    newComputer.CommitChanges();
+                    dirEntry.Close();
+                    newComputer.Close();
+                    return FindByName(computer.PathDomain, computer.SamAccountName);
                 }
                 else
                 {
@@ -64,10 +81,12 @@ namespace AgentNetCore.Context
         {
             try
             {
-                _computerPrincipal = ComputerPrincipal.FindByIdentity(_connect.Context, computer.SamAccountName);
-                if (_computerPrincipal != null)
+                ConnectRepository connect = new ConnectRepository(computer.PathDomain, ObjectApplication.Category.user);
+                UserPrincipal computerPrincipal = new UserPrincipal(connect.Context);
+                computerPrincipal = ComputerPrincipal.FindByIdentity(connect.Context, computer.SamAccountName);
+                if (computerPrincipal != null)
                 {
-                    _computerPrincipal.Delete();
+                    computerPrincipal.Delete();
                 }
             }
             catch (Exception e)
@@ -80,11 +99,11 @@ namespace AgentNetCore.Context
                 }
             }
         }
-        public Computer FindByName(string name)
+        public Computer FindByName(string domain, string name)
         {
             try
             {
-                return FindOne("SamAccountName", name);
+                return FindOne(domain, "SamAccountName", name);
             }
             catch (Exception e)
             {
@@ -92,13 +111,16 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        private Computer FindOne(string campo, string valor)
+        private Computer FindOne(string domain, string campo, string valor)
         {
             try
             {
+                ConnectRepository connect = new ConnectRepository(domain, ObjectApplication.Category.user);
+                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
                 Computer computer = new Computer();
-                _search.Filter = "(" + campo + "=" + valor + ")";
-                computer = GetResult(_search.FindOne());
+                search.Filter = "(" + campo + "=" + valor + ")";
+                computer = GetResult(search.FindOne());
                 return computer;
             }
             catch (Exception e)
@@ -107,19 +129,6 @@ namespace AgentNetCore.Context
                 return null;
             }
 
-        }
-        #endregion
-
-        #region SET
-        private Computer SetProperties(Computer computer)
-        {
-            
-            DirectoryEntry newComputer = _dirEntry.Children.Add("CN=" + computer.SamAccountName, "computer");
-            newComputer.Properties["samAccountName"].Value = computer.SamAccountName;
-            newComputer.CommitChanges();
-            _dirEntry.Close();
-            newComputer.Close();
-            return FindByName(computer.SamAccountName);
         }
         #endregion
 

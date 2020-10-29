@@ -7,8 +7,8 @@ namespace AgentNetCore.Service
     {
         User Create(User user);
         User Update(User user);
-        User FindByEmail(string email);
-        List<User> FindAll();
-        void Delete(string email);
+        User FindByEmail(string domain, string email);
+        List<User> FindAll(string domain);
+        void Delete(string domain, string email);
     }
 }

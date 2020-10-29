@@ -2,45 +2,44 @@
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AgentNetCore.Service
 {
     public class GroupService : IGroupService
     {
-        private LDAPGroup _ldapGroup;
-
-        public GroupService(string domain)
+        public GroupService(MySQLContext context)
         {
-            _ldapGroup = new LDAPGroup(domain);
-        }
 
+        }
         public Group Create(Group group)
         {
             try
             {
-                return _ldapGroup.Create(group);
+                GroupRepository ldapGroup = new GroupRepository();
+                return ldapGroup.Create(group);
             }
             catch (Exception ex)
             {
-
                 throw ex;
             }
         }
 
-        public List<Group> FindAll()
+        public List<Group> FindAll(string domain)
         {
-            return _ldapGroup.FindAll("", "");
+            GroupRepository ldapGroup = new GroupRepository();
+            return ldapGroup.FindAll(domain);
         }
 
-        public Group FindBySamName(string name)
+        public Group FindBySamName(string domain, string name)
         {
-            return _ldapGroup.FindBySamName(name);
+            GroupRepository ldapGroup = new GroupRepository();
+            return ldapGroup.FindBySamName(domain, name);
         }
 
-        public Group FindByEmail(string email)
+        public Group FindByEmail(string domain, string email)
         {
-            return _ldapGroup.FindByEmail(email);
+            GroupRepository ldapGroup = new GroupRepository();
+            return ldapGroup.FindByEmail(domain, email);
         }
 
         public Group Update(Group group)
@@ -49,7 +48,8 @@ namespace AgentNetCore.Service
             {
                 if (group != null)
                 {
-                    _ldapGroup.Update(group);
+                    GroupRepository ldapGroup = new GroupRepository();
+                    ldapGroup.Update(group);
                 }
                 else
                 {
@@ -63,9 +63,10 @@ namespace AgentNetCore.Service
             return group;
         }
 
-        private bool Exist(string email)
+        private bool Exist(string domain, string email)
         {
-            if (_ldapGroup.FindByEmail(email) != null)
+            GroupRepository ldapGroup = new GroupRepository();
+            if (ldapGroup.FindByEmail(domain, email) != null)
             {
                 return true;
             }
@@ -74,14 +75,17 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string samName)
+        public void Delete(string domain, string samName)
         {
-            var result = _ldapGroup.FindBySamName(samName);
+            GroupRepository ldapGroup = new GroupRepository();
+            Group result = new Group();
+            result = ldapGroup.FindBySamName(domain, samName);
             try
             {
                 if (result != null)
                 {
-                    _ldapGroup.Delete(FindBySamName(samName));
+                    
+                    ldapGroup.Delete(result);
                 }
             }
             catch (Exception ex)

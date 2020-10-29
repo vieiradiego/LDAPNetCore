@@ -14,18 +14,18 @@ namespace AgentNetCore.Controllers
             this.userService = userService;
         }
 
-        // GET api/users
-        [HttpGet]
-        public IActionResult Get()
+        // GET api/users/domain
+        [HttpGet("{domain}")]
+        public IActionResult Get(string domain)
         {
-            return Ok(this.userService.FindAll());
+            return Ok(this.userService.FindAll(domain));
         }
 
-        // GET api/users/samName
-        [HttpGet("{email}")]
-        public IActionResult Get(string email)
+        // GET api/users/domain,email
+        [HttpGet("{domain, email}")]
+        public IActionResult Get(string domain, string email)
         {
-            var person = this.userService.FindByEmail(email);
+            var person = this.userService.FindByEmail(domain, email);
             if (person == null) return NotFound();
             return Ok(person);
         }
@@ -46,11 +46,11 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this.userService.Update(user));
         }
 
-        // DELETE api/values/5
-        [HttpDelete("{email}")]
-        public IActionResult Delete(string email)
+        // DELETE api/values/domain&mail
+        [HttpDelete("{domain, email}")]
+        public IActionResult Delete(string domain, string email)
         {
-            this.userService.Delete(email);
+            this.userService.Delete(domain, email);
             return NoContent();
         }
     }

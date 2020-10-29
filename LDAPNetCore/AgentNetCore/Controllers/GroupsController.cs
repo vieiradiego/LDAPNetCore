@@ -13,17 +13,18 @@ namespace AgentNetCore.Controllers
         {
             this.groupService = groupService;
         }
-        [HttpGet] //GET api/group
-        public IActionResult Get()
+        //GET api/group/domain
+        [HttpGet("{domain}")]
+        public IActionResult Get(string domain)
         {
-            return Ok(this.groupService.FindAll());
+            return Ok(this.groupService.FindAll(domain));
         }
 
         //GET api/group/samName
-        [HttpGet("{samName}")]
-        public IActionResult Get(string samName)
+        [HttpGet("{domain, samName}")]
+        public IActionResult Get(string domain, string samName)
         {
-            var group = this.groupService.FindBySamName(samName);
+            var group = this.groupService.FindBySamName(domain, samName);
             if (group == null) return NotFound();
             return Ok(group);
         }
@@ -45,10 +46,10 @@ namespace AgentNetCore.Controllers
         }
 
         // DELETE api/values/5
-        [HttpDelete("{samName}")]
-        public IActionResult Delete(string samName)
+        [HttpDelete("{domain, samName}")]
+        public IActionResult Delete(string domain, string samName)
         {
-            this.groupService.Delete(samName);
+            this.groupService.Delete(domain, samName);
             return NoContent();
         }
     }

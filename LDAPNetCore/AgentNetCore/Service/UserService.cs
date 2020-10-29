@@ -1,28 +1,22 @@
 ﻿using AgentNetCore.Context;
 using AgentNetCore.Model;
-using AgentNetCore.Repository;
 using System;
 using System.Collections.Generic;
-using System.DirectoryServices.Protocols;
-using System.Linq;
-using System.Threading;
 
 namespace AgentNetCore.Service
 {
     public class UserService : IUserService
     {
-        private LDAPUser _ldapUser;
-
-        public UserService(string domain)
+        public UserService()
         {
-            _ldapUser = new LDAPUser(domain);
-        }
-
+            
+        }        
         public User Create(User user)
         {
             try
             {
-                user = _ldapUser.Create(user);
+                UserRepository ldapUser = new UserRepository();
+                user = ldapUser.Create(user);
             }
             catch (Exception e)
             {
@@ -31,21 +25,22 @@ namespace AgentNetCore.Service
             return user;
         }
 
-        public List<User> FindAll()
+        public List<User> FindAll(string domain)
         {
-            if (_ldapUser != null) 
-                return _ldapUser.FindAll("", "");
-            return new List<User>();
+            UserRepository ldapUser = new UserRepository();
+            return ldapUser.FindAll(domain);
         }
 
-        public User FindByName(string name)
+        public User FindByName(string domain, string name)
         {
-            return _ldapUser.FindByName(name);
+            UserRepository ldapUser = new UserRepository();
+            return ldapUser.FindByName(domain, name);
         }
 
-        public User FindByEmail(string email)
+        public User FindByEmail(string domain, string email)
         {
-            return _ldapUser.FindByEmail(email);
+            UserRepository ldapUser = new UserRepository();
+            return ldapUser.FindByEmail(domain, email);
         }
 
         public User Update(User user)
@@ -54,7 +49,8 @@ namespace AgentNetCore.Service
             {
                 if (user != null)
                 {
-                    _ldapUser.Update(user);
+                    UserRepository ldapUser = new UserRepository();
+                    ldapUser.Update(user);
                 }
                 else
                 {
@@ -68,9 +64,10 @@ namespace AgentNetCore.Service
             return user;
         }
 
-        private bool Exist(string email)
+        private bool Exist(string domain, string email)
         {
-            if (_ldapUser.FindByEmail(email) != null)
+            UserRepository ldapUser = new UserRepository();
+            if (ldapUser.FindByEmail(domain, email) != null)
             {
                 return true;
             }
@@ -79,14 +76,16 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string email)
+        public void Delete(string domain, string email)
         {
-            var result = _ldapUser.FindByEmail(email);
+            UserRepository ldapUser = new UserRepository();
+            User result = new User();
+            result = ldapUser.FindByEmail(domain, email);
             try
             {
                 if (result != null)
                 {
-                    _ldapUser.Delete(FindByEmail(email));
+                    ldapUser.Delete(result);
                 }
             }
             catch (Exception ex)

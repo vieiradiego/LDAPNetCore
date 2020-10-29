@@ -7,9 +7,9 @@ namespace AgentNetCore.Service
     {
         Group Create(Group group);
         Group Update(Group group);
-        Group FindByEmail(string email);
-        Group FindBySamName(string samName);
-        List<Group> FindAll();
-        void Delete(string samName);
+        Group FindByEmail(string domain, string email);
+        Group FindBySamName(string domain, string samName);
+        List<Group> FindAll(string domain);
+        void Delete(string domain, string samName);
     }
 }

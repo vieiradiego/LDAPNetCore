@@ -7,8 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-
-
 namespace AgentNetCore
 {
     public class Startup
@@ -28,10 +26,9 @@ namespace AgentNetCore
             // Implementação do banco Mysql
             var MySqlconnectionString = _configuration["MySqlConnection:MySqlConnectionString"];
             services.AddDbContext<MySQLContext>(options => options.UseMySql(MySqlconnectionString));
-
+            
             // LDAP
             // Implementação Credenciais e Domínio
-
 
             //services.AddApiVersioning();
             services.AddControllers();
@@ -39,7 +36,6 @@ namespace AgentNetCore
             //Dependencias
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IGroupService, GroupService>();
-            services.Configure<LDAPConfiguration>(Configuration.GetSection("ldap"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AgentNetCore.Model
+﻿namespace AgentNetCore.Model
 {
     public class Credential
     {
@@ -16,6 +11,6 @@ namespace AgentNetCore.Model
         public string User { get; set; }
         public string Pass { get; set; }
         public string Domain { get; set; }
-        
+
     }
 }

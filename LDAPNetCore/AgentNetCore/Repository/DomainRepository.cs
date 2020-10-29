@@ -1,20 +1,18 @@
-﻿using AgentNetCore.Model;
-using System.DirectoryServices;
-using System.DirectoryServices.AccountManagement;
+﻿using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
 
 namespace AgentNetCore.Context
 {
-    public class LDAPDomain
+    public class DomainRepository
     {
-        private LDAPConnect _connect;
-        private DirectoryEntry _dirEntry;
-        private DirectorySearcher _search;
-        public LDAPDomain(Domain domain)
+        public DomainRepository()
         {
-            _connect = new LDAPConnect(domain.Name,LDAPConnect.ObjectCategory.domain);
-            _dirEntry = new DirectoryEntry(_connect.Path, _connect.User, _connect.Pass);
-            _search = new DirectorySearcher(_dirEntry);
+            
+        }
+
+        public string GetDomain(string domain)
+        {
+            return "";
         }
         public Domain Read(Domain domain)
         {
