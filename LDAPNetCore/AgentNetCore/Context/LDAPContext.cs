@@ -10,12 +10,7 @@ namespace AgentNetCore.Context
         public LdapContext()
         {
 
-        }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Group> Groups { get; set; }
-        public DbSet<Computer> Computers { get; set; }
-        public DbSet<Server> Servers { get; set; }
-        public DbSet<Credential> Credentials { get; set; }
+        }        
     }
 }
 

@@ -1,5 +1,6 @@
 ﻿using AgentNetCore.Application;
 using AgentNetCore.Model;
+using AgentNetCore.Repository;
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
@@ -9,9 +10,10 @@ namespace AgentNetCore.Context
 {
     public class GroupRepository
     {
-        public GroupRepository()
+        private readonly MySQLContext _mySQLContext;
+        public GroupRepository(MySQLContext mySQLContext)
         {
-            
+            _mySQLContext = mySQLContext;
         }
 
         #region CRUD
@@ -19,8 +21,10 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(group.PathDomain, ObjectApplication.Category.group);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
+                connect.Domain = group.PathDomain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(group.PathDomain), connect.User, connect.Pass);
                 DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
                 newGroup.Properties["cn"].Value = group.SamAccountName;
                 newGroup.Properties["samAccountName"].Value = group.SamAccountName;
@@ -51,8 +55,10 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(group.PathDomain, ObjectApplication.Category.group);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(connect.Context);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
+                connect.Domain = group.PathDomain;
+                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
+                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
                 groupPrincipal.SamAccountName = group.SamAccountName;
                 groupPrincipal.Name = group.Name;
                 groupPrincipal.Description = group.Description;
@@ -69,8 +75,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(group.PathDomain, ObjectApplication.Category.group);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = group.PathDomain;
+                
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(group.PathDomain), connect.User, connect.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("SamAccountName=" + group.SamAccountName);
                 DirectoryEntry newGroup = (search.FindOne()).GetDirectoryEntry();
@@ -106,9 +115,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(group.PathDomain, ObjectApplication.Category.group);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(connect.Context);
-                groupPrincipal = GroupPrincipal.FindByIdentity(connect.Context, group.SamAccountName);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = group.PathDomain;
+                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
+                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
+                groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.SamAccountName);
                 if (groupPrincipal != null)
                 {
                     groupPrincipal.Delete();
@@ -124,9 +135,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(group.PathDomain, ObjectApplication.Category.group);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(connect.Context);
-                groupPrincipal = GroupPrincipal.FindByIdentity(connect.Context, group.EmailAddress);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = group.PathDomain;
+                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
+                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
+                groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.EmailAddress);
                 if (groupPrincipal != null)
                 {
                     groupPrincipal.Delete();
@@ -146,8 +159,10 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(domain, ObjectApplication.Category.group);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = domain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<Group> groupList = new List<Group>();
                 search.Filter = "(&(objectClass=group))";
@@ -182,9 +197,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                
-                ConnectRepository connect = new ConnectRepository(domain, ObjectApplication.Category.user);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
+                connect.Domain = domain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 Group group = new Group();
                 search.Filter = "(" + campo + "=" + valor + ")";
@@ -223,6 +240,8 @@ namespace AgentNetCore.Context
                 if (result != null)
                 {
                     ResultPropertyCollection fields = result.Properties;
+                    
+                    
                     return GetProperties(group, fields);
                 }
                 else

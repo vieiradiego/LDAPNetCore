@@ -21,7 +21,7 @@ namespace AgentNetCore.Controllers
         }
 
         //GET api/group/samName
-        [HttpGet("{domain, samName}")]
+        [HttpGet("{domain,samName}")]
         public IActionResult Get(string domain, string samName)
         {
             var group = this.groupService.FindBySamName(domain, samName);
@@ -45,8 +45,8 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this.groupService.Update(group));
         }
 
-        // DELETE api/values/5
-        [HttpDelete("{domain, samName}")]
+        // DELETE api/domain/samName/
+        [HttpDelete("{domain,samName}")]
         public IActionResult Delete(string domain, string samName)
         {
             this.groupService.Delete(domain, samName);

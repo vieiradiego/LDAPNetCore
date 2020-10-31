@@ -1,5 +1,6 @@
 ﻿using AgentNetCore.Application;
 using AgentNetCore.Model;
+using AgentNetCore.Repository;
 using AgentNetCore.Service;
 using System;
 using System.Collections.Generic;
@@ -9,17 +10,20 @@ namespace AgentNetCore.Context
 {
     public class OrganizationalUnitRepository : IOrganizationalUnitService
     {
-        public OrganizationalUnitRepository()
+        private readonly MySQLContext _mySQLContext;
+        public OrganizationalUnitRepository(MySQLContext mySQLContext)
         {
-            
+            _mySQLContext = mySQLContext;
         }
         #region CRUD
         public OrganizationalUnit Create(OrganizationalUnit organizationalUnit)
         {
             try
             {
-                ConnectRepository connect = new ConnectRepository(organizationalUnit.PathDomain, ObjectApplication.Category.organizationalUnit);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = organizationalUnit.PathDomain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(organizationalUnit.PathDomain), connect.User, connect.Pass);
                 dirEntry.Path = organizationalUnit.PathDomain;
                 DirectoryEntry newOrganizationalUnit = dirEntry.Children.Add("OU=" + organizationalUnit.SamAccountName, "organizationalUnit");
                 newOrganizationalUnit.Properties["description"].Value = organizationalUnit.Description;
@@ -137,9 +141,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                
-                ConnectRepository connect = new ConnectRepository(domain, ObjectApplication.Category.organizationalUnit);
-                DirectoryEntry dirEntry = new DirectoryEntry(connect.Path, connect.User, connect.Pass);
+
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.organizationalUnit);
+                connect.Domain = domain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
                 OrganizationalUnit organizationalUnit = new OrganizationalUnit();

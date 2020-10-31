@@ -1,19 +1,17 @@
-﻿using System.DirectoryServices;
+﻿using AgentNetCore.Repository;
+using System.DirectoryServices;
 using System.DirectoryServices.ActiveDirectory;
 
 namespace AgentNetCore.Context
 {
     public class DomainRepository
     {
-        public DomainRepository()
+        private readonly MySQLContext _mySQLContext;
+        public DomainRepository(MySQLContext mySQLContext)
         {
-            
+            _mySQLContext = mySQLContext;
         }
 
-        public string GetDomain(string domain)
-        {
-            return "";
-        }
         public Domain Read(Domain domain)
         {
             Forest currentForest = Forest.GetCurrentForest();

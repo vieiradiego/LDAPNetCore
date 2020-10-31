@@ -13,21 +13,20 @@ namespace AgentNetCore.Controllers
         {
             this.userService = userService;
         }
-
-        // GET api/users/domain
-        [HttpGet("{domain}")]
-        public IActionResult Get(string domain)
+        // GET api/users
+        [HttpGet]
+        public IActionResult Get()
         {
-            return Ok(this.userService.FindAll(domain));
+            return Ok(this.userService.FindAll());
         }
-
-        // GET api/users/domain,email
-        [HttpGet("{domain, email}")]
-        public IActionResult Get(string domain, string email)
+        
+        // GET api/users/email
+        [HttpGet("{email}")]
+        public IActionResult Get(string email)
         {
-            var person = this.userService.FindByEmail(domain, email);
-            if (person == null) return NotFound();
-            return Ok(person);
+            var user = this.userService.FindByEmail(email);
+            if (user == null) return NotFound();
+            return Ok(user);
         }
 
         // POST api/users
@@ -35,7 +34,9 @@ namespace AgentNetCore.Controllers
         public IActionResult Post([FromBody] User user)
         {
             if (user == null) return BadRequest();
-            return new ObjectResult(this.userService.Create(user));
+            var newUser = new ObjectResult(this.userService.Create(user));
+            if (newUser.Value == null) return Conflict();
+            return newUser;
         }
 
         // PUT api/users
@@ -46,11 +47,11 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this.userService.Update(user));
         }
 
-        // DELETE api/values/domain&mail
-        [HttpDelete("{domain, email}")]
-        public IActionResult Delete(string domain, string email)
+        // DELETE api/values/domain/email
+        [HttpDelete("{email}")]
+        public IActionResult Delete(string email)
         {
-            this.userService.Delete(domain, email);
+            this.userService.Delete(email);
             return NoContent();
         }
     }

@@ -16,5 +16,41 @@ namespace AgentNetCore.Application
             domain,
             person
         }
+        private string CreateContainerByCategory(ObjectApplication.Category objectCategory, string pathDomain)
+        {
+            string cont = "";
+            string[] d = pathDomain.Split(".");
+            if (objectCategory == ObjectApplication.Category.user)
+            {
+                cont = "cn=" + objectCategory;
+                for (int i = 0; i < d.Length; i++)
+                {
+
+                    cont = cont + ",dc=" + d[i];
+                }
+
+            }
+            if (objectCategory == ObjectApplication.Category.computer)
+            {
+
+            }
+            if (objectCategory == ObjectApplication.Category.group)
+            {
+                for (int i = 0; i < d.Length; i++)
+                {
+                    cont = cont + "dc=" + d[i];
+                    if (d.Length != (i + 1))
+                    {
+                        cont = cont + ",";
+                    }
+                }
+
+            }
+            if (objectCategory == ObjectApplication.Category.organizationalUnit)
+            {
+
+            }
+            return cont;
+        }
     }
 }
