@@ -20,22 +20,18 @@ namespace AgentNetCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Banco de Dados
-
             //MYSQL
             // Implementação do banco Mysql
             var MySqlconnectionString = _configuration["MySqlConnection:MySqlConnectionString"];
             services.AddDbContext<MySQLContext>(options => options.UseMySql(MySqlconnectionString));
             
-            // LDAP
-            // Implementação Credenciais e Domínio
-
             //services.AddApiVersioning();
             services.AddControllers();
 
             //Dependencias
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IGroupService, GroupService>();
+            services.AddScoped<IOrganizationalUnitService, OrganizationalUnitService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

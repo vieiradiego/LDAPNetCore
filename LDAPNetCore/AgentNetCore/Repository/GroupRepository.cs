@@ -21,23 +21,35 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
-                connect.Domain = group.PathDomain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(group.PathDomain), connect.User, connect.Pass);
-                DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
-                newGroup.Properties["cn"].Value = group.SamAccountName;
-                newGroup.Properties["samAccountName"].Value = group.SamAccountName;
-                newGroup.Properties["displayName"].Value = group.DisplayName;
-                newGroup.Properties["description"].Value = group.Description;
-                newGroup.Properties["mail"].Value = group.EmailAddress;
-                newGroup.Properties["managedBy"].Value = "CN=" + group.Manager + "," + group.PathDomain;
-                var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
-                newGroup.Properties["groupType"].Value = groupType;
-                newGroup.CommitChanges();
-                dirEntry.Close();
-                newGroup.Close();
-                return FindOne(group.PathDomain,"SamAccountName", group.SamAccountName);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(group.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = serverRepo.GetPathByDN(group.PathDomain);
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("samaccountname=" + group.SamAccountName);
+                SearchResult result = search.FindOne();
+                if (result == null)
+                {
+                    DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
+                    newGroup.Properties["cn"].Value = group.SamAccountName;
+                    newGroup.Properties["samAccountName"].Value = group.SamAccountName;
+                    newGroup.Properties["displayName"].Value = group.DisplayName;
+                    newGroup.Properties["description"].Value = group.Description;
+                    newGroup.Properties["mail"].Value = group.EmailAddress;
+                    newGroup.Properties["managedBy"].Value = group.Manager;
+                    var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
+                    newGroup.Properties["groupType"].Value = groupType;
+                    newGroup.CommitChanges();
+                    dirEntry.Close();
+                    newGroup.Close();
+                    return FindOne(domain, "SamAccountName", group.SamAccountName);
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
@@ -47,8 +59,41 @@ namespace AgentNetCore.Context
 
                     Console.WriteLine("\r\nO Grupo já existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
-                return group;
+                return null;
             }
+        }
+
+        public List<Group> FindAll()
+        {
+            ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
+            return FindAll(config.GetConfiguration("DefaultDomain"));
+        }
+
+        public List<Group> FindAll(string domain)
+        {
+            try
+            {
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = domain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                List<Group> groupList = new List<Group>();
+                search.Filter = "(&(objectClass=group))";
+                var groupsResult = search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
+                foreach (SearchResult groupResult in groupsResult)
+                {
+                    groupList.Add(GetResult(groupResult));
+                }
+                return groupList;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+
         }
 
         public Group Create2(Group group)
@@ -75,20 +120,22 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = group.PathDomain;
-                
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(group.PathDomain), connect.User, connect.Pass);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(group.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = serverRepo.GetPathByDN(group.PathDomain);
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = ("SamAccountName=" + group.SamAccountName);
-                DirectoryEntry newGroup = (search.FindOne()).GetDirectoryEntry();
-                if (newGroup != null)
+                search.Filter = ("samaccountname=" + group.SamAccountName);
+                SearchResult result = search.FindOne();
+                if (result != null)
                 {
+                    DirectoryEntry newGroup = result.GetDirectoryEntry();
                     newGroup.Properties["displayName"].Value = group.DisplayName;
                     newGroup.Properties["description"].Value = group.Description;
                     newGroup.Properties["mail"].Value = group.EmailAddress;
-                    newGroup.Properties["managedBy"].Value = "CN=" + group.Manager + "," + group.PathDomain;
+                    newGroup.Properties["managedBy"].Value = group.Manager;
                     var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
                     newGroup.Properties["groupType"].Value = groupType;
                     newGroup.CommitChanges();
@@ -96,7 +143,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne( group.PathDomain,"SamAccountName", group.SamAccountName);
+                    return FindOne(domain, "SamAccountName", group.SamAccountName);
                 }
                 else
                 {
@@ -115,14 +162,18 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = group.PathDomain;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
-                groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.SamAccountName);
-                if (groupPrincipal != null)
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(group.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = group.PathDomain;
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("SamAccountName=" + group.SamAccountName);
+                DirectoryEntry groupFind = (search.FindOne()).GetDirectoryEntry();
+                if (groupFind != null)
                 {
-                    groupPrincipal.Delete();
+                    groupFind.DeleteTree();
                 }
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
@@ -155,37 +206,12 @@ namespace AgentNetCore.Context
                 }
             }
         }
-        public List<Group> FindAll(string domain)
-        {
-            try
-            {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = domain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                List<Group> groupList = new List<Group>();
-                search.Filter = "(&(objectClass=group))";
-                var groupsResult = search.FindAll();
-                List<SearchResult> results = new List<SearchResult>();
-                foreach (SearchResult groupResult in groupsResult)
-                {
-                    groupList.Add(GetResult(groupResult));
-                }
-                return groupList;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return new List<Group>();
-            }
 
-        }
         public Group FindBySamName(string domain, string samName)
         {
             try
             {
-                return FindOne(domain,"samAccountName", samName);
+                return FindOne(domain, "samAccountName", samName);
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
@@ -230,7 +256,7 @@ namespace AgentNetCore.Context
 
         #endregion
 
-        
+
         #region GET
         private Group GetResult(SearchResult result)
         {
@@ -239,10 +265,7 @@ namespace AgentNetCore.Context
             {
                 if (result != null)
                 {
-                    ResultPropertyCollection fields = result.Properties;
-                    
-                    
-                    return GetProperties(group, fields);
+                    return GetProperties(group, result.Properties);
                 }
                 else
                 {

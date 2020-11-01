@@ -8,23 +8,23 @@ namespace AgentNetCore.Controllers
     [Route("[controller]")]
     public class GroupsController : ControllerBase
     {
-        private IGroupService groupService;
+        private IGroupService _groupService;
         public GroupsController(IGroupService groupService)
         {
-            this.groupService = groupService;
+            _groupService = groupService;
         }
-        //GET api/group/domain
-        [HttpGet("{domain}")]
-        public IActionResult Get(string domain)
+        //GET api/groups
+        [HttpGet]
+        public IActionResult Get()
         {
-            return Ok(this.groupService.FindAll(domain));
+            return Ok(_groupService.FindAll());
         }
 
-        //GET api/group/samName
-        [HttpGet("{domain,samName}")]
+        //GET api/groups/domain/samName
+        [HttpGet("{domain}/{samName}")]
         public IActionResult Get(string domain, string samName)
         {
-            var group = this.groupService.FindBySamName(domain, samName);
+            var group = this._groupService.FindBySamName(domain, samName);
             if (group == null) return NotFound();
             return Ok(group);
         }
@@ -34,7 +34,9 @@ namespace AgentNetCore.Controllers
         public IActionResult Post([FromBody] Group group)
         {
             if (group == null) return BadRequest();
-            return new ObjectResult(this.groupService.Create(group));
+            var newGroup = new ObjectResult(this._groupService.Create(group));
+            if (newGroup.Value == null) return Conflict();
+            return newGroup;
         }
 
         // PUT api/values
@@ -42,14 +44,14 @@ namespace AgentNetCore.Controllers
         public IActionResult Put([FromBody] Group group)
         {
             if (group == null) return BadRequest();
-            return new ObjectResult(this.groupService.Update(group));
+            return new ObjectResult(this._groupService.Update(group));
         }
 
         // DELETE api/domain/samName/
-        [HttpDelete("{domain,samName}")]
+        [HttpDelete("{domain}/{samName}")]
         public IActionResult Delete(string domain, string samName)
         {
-            this.groupService.Delete(domain, samName);
+            this._groupService.Delete(domain, samName);
             return NoContent();
         }
     }

@@ -12,7 +12,7 @@ namespace AgentNetCore.Service
         public UserService(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
-        }        
+        }
         public User Create(User user)
         {
             try
@@ -56,15 +56,8 @@ namespace AgentNetCore.Service
         {
             try
             {
-                if (user != null)
-                {
-                    UserRepository userRepo = new UserRepository(_mySQLContext);
-                    userRepo.Update(user);
-                }
-                else
-                {
-                    return new User();
-                }
+                UserRepository userRepo = new UserRepository(_mySQLContext);
+                userRepo.Update(user);
             }
             catch (Exception ex)
             {
@@ -73,10 +66,10 @@ namespace AgentNetCore.Service
             return user;
         }
 
-        private bool Exist(string domain, string email)
+        private bool Exist(string domain, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            if (ldapUser.FindByEmail(domain, email) != null)
+            if (ldapUser.FindBySamName(domain, samName) != null)
             {
                 return true;
             }
@@ -85,11 +78,11 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string email)
+        public void Delete(string domain, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
             User result = new User();
-            result = ldapUser.FindByEmail(email);
+            result = ldapUser.FindBySamName(domain, samName);
             try
             {
                 if (result != null)

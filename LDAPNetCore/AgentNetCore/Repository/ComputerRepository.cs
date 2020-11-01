@@ -151,8 +151,7 @@ namespace AgentNetCore.Context
             {
                 if (result != null)
                 {
-                    ResultPropertyCollection fields = result.Properties;
-                    return GetProperties(computer, fields);
+                    return GetProperties(computer, result.Properties);
                 }
                 else
                 {

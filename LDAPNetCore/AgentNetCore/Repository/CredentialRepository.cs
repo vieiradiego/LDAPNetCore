@@ -37,7 +37,6 @@ namespace AgentNetCore.Context
         {
             get
             {
-
                 return _Domain;
             }
             set

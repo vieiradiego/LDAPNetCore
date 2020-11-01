@@ -9,6 +9,6 @@ namespace AgentNetCore.Service
         User Update(User user);
         User FindByEmail(string email);
         List<User> FindAll();
-        void Delete(string email);
+        void Delete(string domain, string samName);
     }
 }

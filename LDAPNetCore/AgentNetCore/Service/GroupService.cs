@@ -25,16 +25,16 @@ namespace AgentNetCore.Service
             }
         }
 
-        public List<Group> FindAll(string domain)
+        public List<Group> FindAll()
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return ldapGroup.FindAll(domain);
+            return ldapGroup.FindAll();
         }
 
-        public Group FindBySamName(string domain, string name)
+        public Group FindBySamName(string domain, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return ldapGroup.FindBySamName(domain, name);
+            return ldapGroup.FindBySamName(domain, samName);
         }
 
         public Group FindByEmail(string domain, string email)
@@ -47,27 +47,19 @@ namespace AgentNetCore.Service
         {
             try
             {
-                if (group != null)
-                {
-                    GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-                    ldapGroup.Update(group);
-                }
-                else
-                {
-                    return new Group();
-                }
+                GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+                return ldapGroup.Update(group);
             }
             catch (Exception ex)
             {
                 throw ex;
             }
-            return group;
         }
 
-        private bool Exist(string domain, string email)
+        private bool Exist(string domain, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            if (ldapGroup.FindByEmail(domain, email) != null)
+            if (ldapGroup.FindBySamName(domain, samName) != null)
             {
                 return true;
             }
@@ -85,7 +77,7 @@ namespace AgentNetCore.Service
             {
                 if (result != null)
                 {
-                    
+
                     ldapGroup.Delete(result);
                 }
             }

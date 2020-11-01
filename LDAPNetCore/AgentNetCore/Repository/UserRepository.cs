@@ -247,7 +247,7 @@ namespace AgentNetCore.Context
                 ServerRepository serverRepo = new ServerRepository(_mySQLContext);
                 string domain = serverRepo.ConvertToDomain(user.PathDomain);
                 credential.Domain = domain;
-                string pathDomain = serverRepo.RemoveCN(user.PathDomain);
+                string pathDomain = serverRepo.GetPathByDN(user.PathDomain);
                 DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("samaccountname=" + user.SamAccountName);
@@ -458,8 +458,7 @@ namespace AgentNetCore.Context
             {
                 if (result != null)
                 {
-                    ResultPropertyCollection fields = result.Properties;
-                    return GetProperties(user, fields);
+                    return GetProperties(user, result.Properties);
                 }
                 else
                 {

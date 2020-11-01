@@ -8,7 +8,7 @@ using System.DirectoryServices;
 
 namespace AgentNetCore.Context
 {
-    public class OrganizationalUnitRepository : IOrganizationalUnitService
+    public class OrganizationalUnitRepository
     {
         private readonly MySQLContext _mySQLContext;
         public OrganizationalUnitRepository(MySQLContext mySQLContext)
@@ -16,27 +16,39 @@ namespace AgentNetCore.Context
             _mySQLContext = mySQLContext;
         }
         #region CRUD
-        public OrganizationalUnit Create(OrganizationalUnit organizationalUnit)
+        public OrganizationalUnit Create(OrganizationalUnit orgUnit)
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = organizationalUnit.PathDomain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(organizationalUnit.PathDomain), connect.User, connect.Pass);
-                dirEntry.Path = organizationalUnit.PathDomain;
-                DirectoryEntry newOrganizationalUnit = dirEntry.Children.Add("OU=" + organizationalUnit.SamAccountName, "organizationalUnit");
-                newOrganizationalUnit.Properties["description"].Value = organizationalUnit.Description;
-                newOrganizationalUnit.Properties["l"].Value = "Caxias do Sul";
-                newOrganizationalUnit.Properties["st"].Value = "Rio Grande do Sul";
-                newOrganizationalUnit.Properties["street"].Value = "Rua para Teste";
-                newOrganizationalUnit.Properties["postalcode"].Value = "95095495";
-                newOrganizationalUnit.Properties["c"].Value = "US";
-                newOrganizationalUnit.Properties["managedBy"].Value = "CN=" + "Ghost Rider" + "," + "cn=Users,dc=marveldomain,dc=local";
-                newOrganizationalUnit.CommitChanges();
-                dirEntry.Close();
-                newOrganizationalUnit.Close();
-                return organizationalUnit;
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = serverRepo.GetPathByDN(orgUnit.PathDomain);
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("ou=" + orgUnit.SamAccountName);
+                SearchResult result = search.FindOne();
+                if (result == null)
+                {
+                    DirectoryEntry newOrganizationalUnit = dirEntry.Children.Add("OU=" + orgUnit.SamAccountName, ObjectApplication.Category.organizationalUnit.ToString());
+                    newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
+                    newOrganizationalUnit.Properties["l"].Value = orgUnit.City; //"Caxias do Sul";
+                    newOrganizationalUnit.Properties["st"].Value = orgUnit.State; //"Rio Grande do Sul";
+                    newOrganizationalUnit.Properties["street"].Value = orgUnit.Street; //"Rua para Teste";
+                    newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode; //"95095495";
+                    newOrganizationalUnit.Properties["c"].Value = orgUnit.Country; //"US";
+                    newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager; //"CN=" + "Ghost Rider" + "," + "cn=Users,dc=marveldomain,dc=local";
+                    newOrganizationalUnit.CommitChanges();
+                    dirEntry.Close();
+                    newOrganizationalUnit.Close();
+                    return orgUnit;
+                }
+                else
+                {
+                    Console.WriteLine("\r\nO Usuario ja existe no contexto:\r\n\t");
+                    return null;
+                }
             }
             catch (Exception e)
             {
@@ -46,10 +58,154 @@ namespace AgentNetCore.Context
 
                     Console.WriteLine("\r\nO Unidade Organizacional já existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
-                return organizationalUnit;
+                return null;
             }
         }
-        public void CreateRandonStructure()
+        public List<OrganizationalUnit> FindAll()
+        {
+            ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
+            return FindAll(config.GetConfiguration("DefaultDomain"));
+        }
+        public List<OrganizationalUnit> FindAll(string domain)
+        {
+            try
+            {
+                CredentialRepository connect = new CredentialRepository(_mySQLContext);
+                connect.Domain = domain;
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                List<OrganizationalUnit> orgList = new List<OrganizationalUnit>();
+                search.Filter = "(objectCategory=organizationalUnit)";
+                var orgUnitsResult = search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
+                foreach (SearchResult orgUnitResult in orgUnitsResult)
+                {
+                    orgList.Add(GetResult(orgUnitResult));
+                }
+                return orgList;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public OrganizationalUnit FindByName(string domain, string nameOU)
+        {
+            try
+            {
+                return FindOne(domain, "ou", nameOU);
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        private OrganizationalUnit FindOne(string domain, string campo, string valor)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                OrganizationalUnit organizationalUnit = new OrganizationalUnit();
+                credential.Domain = domain;
+                DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/dc=marveldomain,dc=local", credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = "(" + campo + "=" + valor + ")";
+                search.SearchScope = SearchScope.Subtree;
+                search.PropertiesToLoad.Add("name");
+                search.PropertiesToLoad.Add("displayName");
+                search.PropertiesToLoad.Add("description");
+                search.PropertiesToLoad.Add("samaccountname");
+                search.PropertiesToLoad.Add("managedby");
+                search.PropertiesToLoad.Add("adspath");
+                search.PropertiesToLoad.Add("l");
+                search.PropertiesToLoad.Add("st");
+                search.PropertiesToLoad.Add("postalcode");
+                search.PropertiesToLoad.Add("c");
+                search.PropertiesToLoad.Add("mail");
+                search.PropertiesToLoad.Add("objectsid");
+                search.PropertiesToLoad.Add("whenchanged");
+                search.PropertiesToLoad.Add("whencreated");
+                search.PropertiesToLoad.Add("distinguishedname");
+                search.PropertiesToLoad.Add("street");
+                search.PropertiesToLoad.Add("iscriticalsystemobject");
+                search.PropertiesToLoad.Add("cn");
+                organizationalUnit = GetResult(search.FindOne());
+                return organizationalUnit;
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public OrganizationalUnit Update(OrganizationalUnit orgUnit)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = serverRepo.GetPathByDN(orgUnit.PathDomain);
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("ou=" + orgUnit.SamAccountName);
+                SearchResult result = search.FindOne();
+                if (result != null)
+                {
+                    DirectoryEntry newOrganizationalUnit = result.GetDirectoryEntry();
+                    newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
+                    newOrganizationalUnit.Properties["l"].Value = orgUnit.City; //"Caxias do Sul";
+                    newOrganizationalUnit.Properties["st"].Value = orgUnit.State; //"Rio Grande do Sul";
+                    newOrganizationalUnit.Properties["street"].Value = orgUnit.Street; //"Rua para Teste";
+                    newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode; //"95095495";
+                    newOrganizationalUnit.Properties["c"].Value = orgUnit.Country; //"US";
+                    newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager; //"CN=" + "Ghost Rider" + "," + "cn=Users,dc=marveldomain,dc=local";
+                    newOrganizationalUnit.CommitChanges();
+                    dirEntry.Close();
+                    newOrganizationalUnit.Close();
+                    return FindOne(domain, "ou", orgUnit.SamAccountName);
+                }
+                else
+                {
+                    Console.WriteLine("\r\nUser not identify:\r\n\t");
+                    return null;
+                }
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public void Delete(OrganizationalUnit orgUnit)
+        {
+            try
+            {
+                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
+                credential.Domain = domain;
+                string pathDomain = orgUnit.PathDomain;
+                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("distinguishedname=" + orgUnit.DistinguishedName);
+                DirectoryEntry orgUnitFind = (search.FindOne()).GetDirectoryEntry();
+                if (orgUnitFind != null)
+                {
+                    orgUnitFind.DeleteTree();
+                }
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+        }
+        public void CreateMarvelStructure()
         {
             try
             {
@@ -65,7 +221,6 @@ namespace AgentNetCore.Context
             }
         }
         #endregion
-
         private List<OrganizationalUnit> SetOrganizarionUnitMarvel()
         {
             List<OrganizationalUnit> organizationalUnitMarvel = new List<OrganizationalUnit>();
@@ -124,41 +279,6 @@ namespace AgentNetCore.Context
 
             return organizationalUnitMarvel;
         }
-
-        public OrganizationalUnit FindBySamName(string domain, string samName)
-        {
-            try
-            {
-                return FindOne(domain, "samAccountName", samName);
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
-        private OrganizationalUnit FindOne(string domain,string campo, string valor)
-        {
-            try
-            {
-
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.organizationalUnit);
-                connect.Domain = domain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = "(" + campo + "=" + valor + ")";
-                OrganizationalUnit organizationalUnit = new OrganizationalUnit();
-                organizationalUnit = GetResult(search.FindOne());
-                return organizationalUnit;
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-
-        }
         private OrganizationalUnit GetResult(SearchResult result)
         {
             OrganizationalUnit organizationalUnit = new OrganizationalUnit();
@@ -166,8 +286,7 @@ namespace AgentNetCore.Context
             {
                 if (result != null)
                 {
-                    ResultPropertyCollection fields = result.Properties;
-                    return GetProperties(organizationalUnit, fields);
+                    return GetProperties(organizationalUnit, result.Properties);
                 }
                 else
                 {
@@ -181,23 +300,19 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         private OrganizationalUnit GetProperties(OrganizationalUnit organizationalUnit, ResultPropertyCollection fields)
         {
             try
             {
+                ServerRepository sr = new ServerRepository(_mySQLContext);
                 foreach (String ldapField in fields.PropertyNames)
                 {
                     foreach (Object myCollection in fields[ldapField])
                     {
-
                         switch (ldapField)
                         {
-                            case "cn":
-                                organizationalUnit.DisplayName = myCollection.ToString();
-                                break;
-                            case "samaccountname":
-                                organizationalUnit.DisplayName = myCollection.ToString();
+                            case "name":
+                                organizationalUnit.Name = myCollection.ToString();
                                 break;
                             case "displayName":
                                 organizationalUnit.DisplayName = myCollection.ToString();
@@ -205,43 +320,66 @@ namespace AgentNetCore.Context
                             case "description":
                                 organizationalUnit.Description = myCollection.ToString();
                                 break;
-                            //case "mail":
-                            //    organizationalUnit.EmailAddress = myCollection.ToString();
-                            //    break;
-                            //case "managedby":
-                            //    organizationalUnit.Manager = myCollection.ToString();
-                            //    break;
-                            //case "objectsid":
-                            //    organizationalUnit.ObjectSid = myCollection.ToString();
-                            //    break;
+                            case "samaccountname":
+                                organizationalUnit.SamAccountName = myCollection.ToString();
+                                break;
+                            case "managedby":
+                                organizationalUnit.Manager = myCollection.ToString();
+                                break;
                             case "adspath":
                                 organizationalUnit.PathDomain = myCollection.ToString();
+                                organizationalUnit.Domain = sr.ConvertToDomain(myCollection.ToString());
+                                break;
+                            case "l":
+                                organizationalUnit.City = myCollection.ToString();
+                                break;
+                            case "st":
+                                organizationalUnit.State = myCollection.ToString();
+                                break;
+                            case "postalcode":
+                                organizationalUnit.PostalCode = myCollection.ToString();
+                                break;
+                            case "c":
+                                organizationalUnit.Country = myCollection.ToString();
+                                break;
+                            case "mail":
+                                organizationalUnit.Email = myCollection.ToString();
+                                break;
+                            case "objectsid":
+                                organizationalUnit.ObjectSid = myCollection.ToString();
+                                break;
+                            case "whenchanged":
+                                organizationalUnit.WhenChanged = myCollection.ToString();
+                                break;
+                            case "whencreated":
+                                organizationalUnit.WhenCreated = myCollection.ToString();
+                                break;
+                            case "ou":
+                                organizationalUnit.Ou = myCollection.ToString();
+                                break;
+                            case "distinguishedname":
+                                organizationalUnit.DistinguishedName = myCollection.ToString();
+                                break;
+                            case "street":
+                                organizationalUnit.Street = myCollection.ToString();
+                                break;
+                            case "iscriticalsystemobject":
+                                organizationalUnit.IsCriticalSystemObject = (bool)myCollection;
+                                break;
+                            case "cn":
+                                organizationalUnit.CommonName = myCollection.ToString();
                                 break;
                         }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
                 }
+                return organizationalUnit;
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return organizationalUnit;
+                return null;
             }
-            return organizationalUnit;
-        }
-        public OrganizationalUnit Update(Group organizationalUnit)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<OrganizationalUnit> FindAll(string domain)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Delete(string domain, string samName)
-        {
-            throw new NotImplementedException();
         }
     }
 }
