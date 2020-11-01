@@ -73,15 +73,14 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = domain;
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.Domain = domain;
                 ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<Group> groupList = new List<Group>();
                 search.Filter = "(&(objectClass=group))";
-                var groupsResult = search.FindAll();
-                List<SearchResult> results = new List<SearchResult>();
+                SearchResultCollection groupsResult = search.FindAll();
                 foreach (SearchResult groupResult in groupsResult)
                 {
                     groupList.Add(GetResult(groupResult));
@@ -100,8 +99,8 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
-                connect.Domain = group.PathDomain;
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
+                credential.Domain = group.PathDomain;
                 PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
                 GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
                 groupPrincipal.SamAccountName = group.SamAccountName;
@@ -186,8 +185,8 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = group.PathDomain;
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.Domain = group.PathDomain;
                 PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
                 GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
                 groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.EmailAddress);
@@ -224,10 +223,10 @@ namespace AgentNetCore.Context
             try
             {
 
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
-                connect.Domain = domain;
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
+                credential.Domain = domain;
                 ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 Group group = new Group();
                 search.Filter = "(" + campo + "=" + valor + ")";
@@ -321,13 +320,13 @@ namespace AgentNetCore.Context
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
                 }
+                return group;
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return group;
+                return null;
             }
-            return group;
         }
         #endregion
 

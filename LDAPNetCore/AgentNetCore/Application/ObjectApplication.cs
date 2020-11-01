@@ -14,7 +14,8 @@ namespace AgentNetCore.Application
             computer,
             organizationalUnit,
             domain,
-            person
+            person,
+            system
         }
     }
 }

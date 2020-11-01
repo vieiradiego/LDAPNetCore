@@ -17,7 +17,9 @@ namespace AgentNetCore.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(_groupService.FindAll());
+            var group = _groupService.FindAll();
+            if (group == null) return NotFound();
+            return Ok(group);
         }
 
         //GET api/groups/domain/samName

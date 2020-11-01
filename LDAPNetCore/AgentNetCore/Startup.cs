@@ -1,4 +1,5 @@
 using AgentNetCore.Context;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,10 +12,10 @@ namespace AgentNetCore
 {
     public class Startup
     {
-        public IConfiguration _configuration { get; }
+        public IConfiguration Configuration { get; }
         public Startup(IConfiguration configuration)
         {
-            _configuration = configuration;
+            Configuration = configuration;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -22,7 +23,7 @@ namespace AgentNetCore
         {
             //MYSQL
             // Implementação do banco Mysql
-            var MySqlconnectionString = _configuration["MySqlConnection:MySqlConnectionString"];
+            var MySqlconnectionString = Configuration["MySqlConnection:MySqlConnectionString"];
             services.AddDbContext<MySQLContext>(options => options.UseMySql(MySqlconnectionString));
             
             //services.AddApiVersioning();
@@ -32,6 +33,7 @@ namespace AgentNetCore
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IOrganizationalUnitService, OrganizationalUnitService>();
+            services.AddScoped<IForestService, ForestService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
