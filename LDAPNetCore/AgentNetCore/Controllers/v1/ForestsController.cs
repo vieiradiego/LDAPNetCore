@@ -1,6 +1,11 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Data.VO;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Collections.Generic;
+using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
 {
@@ -11,12 +16,19 @@ namespace AgentNetCore.Controllers
     public class ForestsController : ControllerBase
     {
         private IForestService _forestService;
-        public ForestsController(IForestService forestService)
+        private readonly ILogger _logger;
+        public ForestsController(IForestService forestService, ILogger<UsersController> logger)
         {
             _forestService = forestService;
+            _logger = logger;
         }
         //GET api/forests
         [HttpGet]
+        [SwaggerResponse((200), Type = typeof(List<ForestVO>))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
             var forest = _forestService.FindAll();
@@ -26,6 +38,11 @@ namespace AgentNetCore.Controllers
 
         //GET api/forests/domain
         [HttpGet("{domain}")]
+        [SwaggerResponse((200), Type = typeof(ForestVO))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get(string domain)
         {
             var forest = _forestService.FindAll(domain);

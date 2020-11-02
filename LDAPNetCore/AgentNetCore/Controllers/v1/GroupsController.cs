@@ -2,6 +2,10 @@
 using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Collections.Generic;
+using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
 {
@@ -11,12 +15,19 @@ namespace AgentNetCore.Controllers
     public class GroupsController : ControllerBase
     {
         private IGroupService _groupService;
-        public GroupsController(IGroupService groupService)
+        private readonly ILogger _logger;
+        public GroupsController(IGroupService groupService, ILogger<UsersController> logger)
         {
             _groupService = groupService;
+            _logger = logger;
         }
         //GET api/groups
         [HttpGet]
+        [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
             var group = _groupService.FindAll();
@@ -26,6 +37,11 @@ namespace AgentNetCore.Controllers
 
         //GET api/groups/domain/samName
         [HttpGet("{domain}/{samName}")]
+        [SwaggerResponse((200), Type = typeof(GroupVO))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get(string domain, string samName)
         {
             var group = this._groupService.FindBySamName(domain, samName);
@@ -35,6 +51,11 @@ namespace AgentNetCore.Controllers
 
         // POST api/values
         [HttpPost]
+        [SwaggerResponse((201), Type = typeof(GroupVO))]
+        [SwaggerResponse(209)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Post([FromBody] GroupVO group)
         {
             if (group == null) return BadRequest();
@@ -45,6 +66,10 @@ namespace AgentNetCore.Controllers
 
         // PUT api/values
         [HttpPut]
+        [SwaggerResponse((202), Type = typeof(GroupVO))]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Put([FromBody] GroupVO group)
         {
             if (group == null) return BadRequest();
@@ -53,6 +78,10 @@ namespace AgentNetCore.Controllers
 
         // DELETE api/domain/samName/
         [HttpDelete("{domain}/{samName}")]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Delete(string domain, string samName)
         {
             this._groupService.Delete(domain, samName);

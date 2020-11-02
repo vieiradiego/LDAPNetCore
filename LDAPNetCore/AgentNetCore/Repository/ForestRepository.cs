@@ -118,9 +118,6 @@ namespace AgentNetCore.Repository
                             case "mail":
                                 forest.Email = myCollection.ToString();
                                 break;
-                            case "objectsid":
-                                forest.ObjectSid = myCollection.ToString();
-                                break;
                             case "whenchanged":
                                 forest.WhenChanged = myCollection.ToString();
                                 break;

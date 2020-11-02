@@ -3,13 +3,15 @@ using AgentNetCore.Hypermedia;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using Microsoft.OpenApi.Models;
+using System;
 using Tapioca.HATEOAS;
 
 namespace AgentNetCore
@@ -45,12 +47,35 @@ namespace AgentNetCore
             //Add HATEOAS
             var filterOptions = new HyperMediaFilterOptions();
             filterOptions.ObjectContentResponseEnricherList.Add(new UserEnricher());
-            //filterOptions.ObjectContentResponseEnricherList.Add(new GroupEnricher());
-            //filterOptions.ObjectContentResponseEnricherList.Add(new OrganizationalUnitEnricher());
-            //filterOptions.ObjectContentResponseEnricherList.Add(new ForestEnricher());
+            filterOptions.ObjectContentResponseEnricherList.Add(new GroupEnricher());
+            filterOptions.ObjectContentResponseEnricherList.Add(new OrganizationalUnitEnricher());
+            filterOptions.ObjectContentResponseEnricherList.Add(new ForestEnricher());
             services.AddSingleton(filterOptions);
 
-            //add Controllers
+            //Add Swagger
+            services.AddSwaggerGen(c =>
+            {
+                // sepcify our operation filter here.  
+                c.SwaggerDoc("v1.0.0", new OpenApiInfo
+                {
+                    Version = "v1.0.0",
+                    Title = $"AgentNetCore - v1 API",
+                    Description = "Trabalho de Conclusão de Curso - Implementação de Integração com o servidor de domínio através de API RESTful para as Empresas Marvel",
+                    TermsOfService = new Uri("https://www.google.com"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Diego Vieira",
+                        Email = "diegovieira.ti@gmail.com",
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Apache-2.0",
+                        Url = new Uri("https://www.apache.org/licenses/LICENSE-2.0.html")
+                    }
+                });
+            });
+
+            //Add Controllers
             services.AddControllers();
 
             //Dependencias
@@ -73,11 +98,26 @@ namespace AgentNetCore
 
             app.UseAuthorization();
 
+            app.UseSwagger(c =>
+            {
+            });
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 API");
+            });
+
+            var option = new RewriteOptions();
+            option.AddRedirect("^$","swagger");
+            app.UseRewriter(option);
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("DefaultApi", "{controller}");
             });
+
+            
         }
     }
 }
