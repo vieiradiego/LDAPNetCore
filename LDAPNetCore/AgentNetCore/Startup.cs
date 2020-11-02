@@ -1,18 +1,13 @@
 using AgentNetCore.Context;
-using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-
+using Microsoft.Net.Http.Headers;
 
 namespace AgentNetCore
 {
@@ -31,11 +26,17 @@ namespace AgentNetCore
         {
             var connectionString = _configuration["connectionStrings:MySQL"];
             services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
-            
+
             //Add Versioning
             services.AddApiVersioning();
-
-
+            services.AddMvc(options =>
+            {
+                options.RespectBrowserAcceptHeader = true;
+                options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("text/xml"));
+                options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
+            })
+            .AddXmlSerializerFormatters();
+            //add Controllers
             services.AddControllers();
 
             //Dependencias
