@@ -3,30 +3,39 @@ using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+
 
 namespace AgentNetCore
 {
     public class Startup
     {
-        public IConfiguration Configuration { get; }
-        public Startup(IConfiguration configuration)
+        //private readonly ILogger _logger;
+        public IConfiguration _configuration { get; }
+
+        public Startup(IConfiguration configuration)//, ILogger<Startup> logger
         {
-            Configuration = configuration;
+            _configuration = configuration;
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //MYSQL
-            // Implementação do banco Mysql
-            var MySqlconnectionString = Configuration["MySqlConnection:MySqlConnectionString"];
-            services.AddDbContext<MySQLContext>(options => options.UseMySql(MySqlconnectionString));
+            var connectionString = _configuration["connectionStrings:MySQL"];
+            services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
             
-            //services.AddApiVersioning();
+            //Add Versioning
+            services.AddApiVersioning();
+
+
             services.AddControllers();
 
             //Dependencias
@@ -37,7 +46,7 @@ namespace AgentNetCore
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {

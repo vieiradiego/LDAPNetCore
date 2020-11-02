@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AgentNetCore.Controllers
 {
+
+    [ApiVersion("1.0")]
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class ForestsController : ControllerBase
     {
         private IForestService _forestService;

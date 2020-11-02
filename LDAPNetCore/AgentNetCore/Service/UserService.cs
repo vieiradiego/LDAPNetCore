@@ -1,4 +1,6 @@
 ﻿using AgentNetCore.Context;
+using AgentNetCore.Data.Converters;
+using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
@@ -8,18 +10,20 @@ namespace AgentNetCore.Service
     public class UserService : IUserService
     {
         private readonly MySQLContext _mySQLContext;
-
+        private readonly UserConverter _converter;
         public UserService(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+            _converter = new UserConverter();
         }
-        public User Create(User user)
+        public UserVO Create(UserVO user)
         {
             try
             {
                 UserRepository ldapUser = new UserRepository(_mySQLContext);
-                user = ldapUser.Create(user);
-                return user;
+                var userEntity = _converter.Parse(user);
+                userEntity = ldapUser.Create(userEntity);
+                return _converter.Parse(userEntity);
             }
             catch (Exception e)
             {
@@ -28,42 +32,43 @@ namespace AgentNetCore.Service
             return null;
         }
 
-        public List<User> FindAll()
+        public List<UserVO> FindAll()
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return ldapUser.FindAll();
+            return _converter.ParseList(ldapUser.FindAll());
         }
 
-        public User FindByName(string domain, string name)
+        public UserVO FindByName(string domain, string name)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return ldapUser.FindByName(domain, name);
+            return _converter.Parse(ldapUser.FindByName(domain, name));
         }
 
-        public User FindByEmail(string domain, string email)
+        public UserVO FindByEmail(string domain, string email)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return ldapUser.FindByEmail(domain, email);
+            return _converter.Parse(ldapUser.FindByEmail(domain, email));
         }
 
-        public User FindByEmail(string email)
+        public UserVO FindByEmail(string email)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return ldapUser.FindByEmail(email);
+            return _converter.Parse(ldapUser.FindByEmail(email));
         }
 
-        public User Update(User user)
+        public UserVO Update(UserVO user)
         {
             try
             {
-                UserRepository userRepo = new UserRepository(_mySQLContext);
-                userRepo.Update(user);
+                UserRepository ldapUser = new UserRepository(_mySQLContext);
+                var userEntity = _converter.Parse(user);
+                userEntity = ldapUser.Update(userEntity);
+                return _converter.Parse(userEntity);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                return null;
             }
-            return user;
         }
 
         private bool Exist(string domain, string samName)

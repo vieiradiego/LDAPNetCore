@@ -1,8 +1,6 @@
-﻿using AgentNetCore.Model.Base;
-
-namespace AgentNetCore.Model
+﻿namespace AgentNetCore.Data.VO
 {
-    public class Group : BaseEntity
+    public class GroupVO
     {
         public string DisplayName { get; set; }
         public string Name { get; set; }

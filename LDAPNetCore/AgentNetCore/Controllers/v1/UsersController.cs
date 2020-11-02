@@ -1,25 +1,39 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Data.VO;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace AgentNetCore.Controllers
 {
+    [ApiVersion("1.0")]
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class UsersController : ControllerBase
     {
         private IUserService _userService;
-        public UsersController(IUserService userService)
+        private readonly ILogger _logger;
+        
+
+        public UsersController(IUserService userService, ILogger<UsersController> logger)
         {
             _userService = userService;
+            _logger = logger;
+            
         }
         // GET api/users
         [HttpGet]
         public IActionResult Get()
         {
+            _logger.LogInformation(this.ControllerContext.RouteData.Values["controller"].ToString() + "|" +
+                                   this.ControllerContext.RouteData.Values["action"].ToString() + "|" +
+                                   this.ControllerContext.RouteData.Values["version"].ToString() + "|" +
+                                   Request.Host + "|" +
+                                   System.DateTime.Now.ToString("dd-MMM-yyyy-HH:mm:ss")
+                                   );
             return Ok(_userService.FindAll());
         }
-        
+
         // GET api/users/email
         [HttpGet("{email}")]
         public IActionResult Get(string email)
@@ -31,7 +45,7 @@ namespace AgentNetCore.Controllers
 
         // POST api/users
         [HttpPost]
-        public IActionResult Post([FromBody] User user)
+        public IActionResult Post([FromBody] UserVO user)
         {
             if (user == null) return BadRequest();
             var newUser = new ObjectResult(_userService.Create(user));
@@ -41,7 +55,7 @@ namespace AgentNetCore.Controllers
 
         // PUT api/users
         [HttpPut]
-        public IActionResult Put([FromBody] User user)
+        public IActionResult Put([FromBody] UserVO user)
         {
             if (user == null) return BadRequest();
             return new ObjectResult(_userService.Update(user));

@@ -1,11 +1,13 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Data.VO;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgentNetCore.Controllers
 {
+    [ApiVersion("1.0")]
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class GroupsController : ControllerBase
     {
         private IGroupService _groupService;
@@ -33,7 +35,7 @@ namespace AgentNetCore.Controllers
 
         // POST api/values
         [HttpPost]
-        public IActionResult Post([FromBody] Group group)
+        public IActionResult Post([FromBody] GroupVO group)
         {
             if (group == null) return BadRequest();
             var newGroup = new ObjectResult(this._groupService.Create(group));
@@ -43,7 +45,7 @@ namespace AgentNetCore.Controllers
 
         // PUT api/values
         [HttpPut]
-        public IActionResult Put([FromBody] Group group)
+        public IActionResult Put([FromBody] GroupVO group)
         {
             if (group == null) return BadRequest();
             return new ObjectResult(this._groupService.Update(group));

@@ -1,4 +1,6 @@
 ﻿using AgentNetCore.Context;
+using AgentNetCore.Data.Converters;
+using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
@@ -8,16 +10,20 @@ namespace AgentNetCore.Service
     public class GroupService : IGroupService
     {
         private MySQLContext _mySQLContext;
+        private readonly GroupConverter _converter;
         public GroupService(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+            _converter = new GroupConverter();
         }
-        public Group Create(Group group)
+        public GroupVO Create(GroupVO group)
         {
             try
             {
                 GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-                return ldapGroup.Create(group);
+                var GroupEntity = _converter.Parse(group);
+                GroupEntity = ldapGroup.Create(GroupEntity);
+                return _converter.Parse(GroupEntity);
             }
             catch (Exception ex)
             {
@@ -25,30 +31,32 @@ namespace AgentNetCore.Service
             }
         }
 
-        public List<Group> FindAll()
+        public List<GroupVO> FindAll()
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return ldapGroup.FindAll();
+            return _converter.ParseList(ldapGroup.FindAll());
         }
 
-        public Group FindBySamName(string domain, string samName)
+        public GroupVO FindBySamName(string domain, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return ldapGroup.FindBySamName(domain, samName);
+            return _converter.Parse(ldapGroup.FindBySamName(domain, samName));
         }
 
-        public Group FindByEmail(string domain, string email)
+        public GroupVO FindByEmail(string domain, string email)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return ldapGroup.FindByEmail(domain, email);
+            return _converter.Parse(ldapGroup.FindByEmail(domain, email));
         }
 
-        public Group Update(Group group)
+        public GroupVO Update(GroupVO group)
         {
             try
             {
                 GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-                return ldapGroup.Update(group);
+                var groupEntity = _converter.Parse(group);
+                groupEntity = ldapGroup.Update(groupEntity);
+                return _converter.Parse(groupEntity);
             }
             catch (Exception ex)
             {

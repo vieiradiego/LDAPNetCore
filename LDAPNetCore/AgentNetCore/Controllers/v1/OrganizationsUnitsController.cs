@@ -1,11 +1,13 @@
-﻿using AgentNetCore.Model;
+﻿using AgentNetCore.Data.VO;
+using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AgentNetCore.Controllers
 {
+    [ApiVersion("1.0")]
     [ApiController]
-    [Route("[controller]")]
+    [Route("v{version:apiVersion}/[controller]")]
     public class OrganizationsUnitsController : ControllerBase
     {
         private IOrganizationalUnitService _orgService;
@@ -33,7 +35,7 @@ namespace AgentNetCore.Controllers
 
         // POST api/organizationunit/orgUnit
         [HttpPost]
-        public IActionResult Post([FromBody] OrganizationalUnit orgUnit)
+        public IActionResult Post([FromBody] OrganizationalUnitVO orgUnit)
         {
             if (orgUnit == null) return BadRequest();
             var newOrgUnit = new ObjectResult(_orgService.Create(orgUnit));
@@ -43,7 +45,7 @@ namespace AgentNetCore.Controllers
 
         // PUT api/organizationunit/orgUnit
         [HttpPut]
-        public IActionResult Put([FromBody] OrganizationalUnit orgUnit)
+        public IActionResult Put([FromBody] OrganizationalUnitVO orgUnit)
         {
             if (orgUnit == null) return BadRequest();
             return new ObjectResult(_orgService.Update(orgUnit));

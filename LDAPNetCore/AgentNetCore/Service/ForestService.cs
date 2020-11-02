@@ -1,4 +1,6 @@
 ﻿using AgentNetCore.Context;
+using AgentNetCore.Data.Converters;
+using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using AgentNetCore.Repository;
 using System;
@@ -10,19 +12,21 @@ namespace AgentNetCore.Service
     public class ForestService : IForestService
     {
         private MySQLContext _mySQLContext;
+        private readonly ForestConverter _converter;
         public ForestService(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+            _converter = new ForestConverter();
         }
-        public List<Forest> FindAll()
+        public List<ForestVO> FindAll()
         {
             ForestRepository ldapForest = new ForestRepository(_mySQLContext);
-            return ldapForest.FindAll();
+            return _converter.ParseList(ldapForest.FindAll());
         }
-        public List<Forest> FindAll(string domain)
+        public List<ForestVO> FindAll(string domain)
         {
             ForestRepository ldapForest = new ForestRepository(_mySQLContext);
-            return ldapForest.FindAll(domain);
+            return _converter.ParseList(ldapForest.FindAll(domain));
         }
     }
 }

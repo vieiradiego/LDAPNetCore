@@ -1,13 +1,9 @@
-﻿using AgentNetCore.Model.Base;
-using System;
-using System.Collections.Generic;
-using System.DirectoryServices.AccountManagement;
+﻿using System;
 
-
-namespace AgentNetCore.Model
+namespace AgentNetCore.Data.VO
 {
-    public class User : BaseEntity
-    {   
+    public class UserVO
+    {
         public string Name { get; set; }
         public string Surname { get; set; }
         public string LogonName { get; set; }
@@ -44,6 +40,5 @@ namespace AgentNetCore.Model
         public string DirectReports { get; set; }
         public string MemberOf { get; set; }
         public string UserAccountControl { get; set; }
-        
     }
 }

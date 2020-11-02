@@ -1,4 +1,6 @@
 ﻿using AgentNetCore.Context;
+using AgentNetCore.Data.Converters;
+using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
@@ -8,41 +10,47 @@ namespace AgentNetCore.Service
 {
     public class OrganizationalUnitService : IOrganizationalUnitService
     {
-        private MySQLContext _mySQLContext;
+        private readonly MySQLContext _mySQLContext;
+        private readonly OrganizationalUnitConverter _converter;
         public OrganizationalUnitService(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+            _converter = new OrganizationalUnitConverter();
         }
-        public OrganizationalUnit Create(OrganizationalUnit organizationUnit)
+        public OrganizationalUnitVO Create(OrganizationalUnitVO organizationalUnit)
         {
             try
             {
                 OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-                return ldapOrg.Create(organizationUnit);
+                var organizationalUnitEntity = _converter.Parse(organizationalUnit);
+                organizationalUnitEntity = ldapOrg.Create(organizationalUnitEntity);
+                return _converter.Parse(organizationalUnitEntity);
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
-        public List<OrganizationalUnit> FindAll(string domain)
+        public List<OrganizationalUnitVO> FindAll(string domain)
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-            return ldapOrg.FindAll(domain);
+            return _converter.ParseList(ldapOrg.FindAll(domain));
         }
 
 
-        public OrganizationalUnit FindByName(string domain, string nameOU)
+        public OrganizationalUnitVO FindByName(string domain, string nameOU)
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-            return ldapOrg.FindByName(domain, nameOU);
+            return _converter.Parse(ldapOrg.FindByName(domain, nameOU));
         }
-        public OrganizationalUnit Update(OrganizationalUnit organizationUnit)
+        public OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit)
         {
             try
             {
                 OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-                return ldapOrg.Update(organizationUnit);
+                var organizationalUnitEntity = _converter.Parse(organizationalUnit);
+                organizationalUnitEntity = ldapOrg.Update(organizationalUnitEntity);
+                return  _converter.Parse(organizationalUnitEntity);
             }
             catch (Exception ex)
             {

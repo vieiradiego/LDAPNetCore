@@ -1,6 +1,8 @@
-﻿namespace AgentNetCore.Model
+﻿using AgentNetCore.Model.Base;
+
+namespace AgentNetCore.Model
 {
-    public class Server
+    public class Server : BaseEntity
     {
         public long? Id { get; set; }
         public string Domain { get; set; }

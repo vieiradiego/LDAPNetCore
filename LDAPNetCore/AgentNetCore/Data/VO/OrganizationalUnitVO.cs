@@ -1,8 +1,6 @@
-﻿using AgentNetCore.Model.Base;
-
-namespace AgentNetCore.Model
+﻿namespace AgentNetCore.Data.VO
 {
-    public class OrganizationalUnit : BaseEntity
+    public class OrganizationalUnitVO
     {
         public string Name { get; set; }
         public string DisplayName { get; set; }
