@@ -27,6 +27,7 @@
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="4.7.0" />
     <PackageReference Include="System.DirectoryServices.Protocols" Version="4.7.0" />
     <PackageReference Include="System.Security.SecureString" Version="4.3.0" />
+    <PackageReference Include="Tapioca.HATEOAS" Version="1.0.4" />
   </ItemGroup>
 
 

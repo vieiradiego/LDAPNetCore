@@ -3,6 +3,7 @@ using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
 {
@@ -23,6 +24,7 @@ namespace AgentNetCore.Controllers
         }
         // GET api/users
         [HttpGet]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
             _logger.LogInformation(this.ControllerContext.RouteData.Values["controller"].ToString() + "|" +
@@ -36,6 +38,7 @@ namespace AgentNetCore.Controllers
 
         // GET api/users/email
         [HttpGet("{email}")]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get(string email)
         {
             var user = _userService.FindByEmail(email);
@@ -45,6 +48,7 @@ namespace AgentNetCore.Controllers
 
         // POST api/users
         [HttpPost]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Post([FromBody] UserVO user)
         {
             if (user == null) return BadRequest();
@@ -55,6 +59,7 @@ namespace AgentNetCore.Controllers
 
         // PUT api/users
         [HttpPut]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Put([FromBody] UserVO user)
         {
             if (user == null) return BadRequest();
@@ -63,6 +68,7 @@ namespace AgentNetCore.Controllers
 
         // DELETE api/values/domain/email
         [HttpDelete("{domain}/{samName}")]
+        [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Delete(string domain, string email)
         {
             _userService.Delete(domain, email);

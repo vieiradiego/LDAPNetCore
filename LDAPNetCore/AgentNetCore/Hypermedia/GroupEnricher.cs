@@ -9,12 +9,12 @@ using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Hypermedia
 {
-    public class UserEnricher : ObjectContentResponseEnricher<UserVO>
+    public class GroupEnricher : ObjectContentResponseEnricher<GroupVO>
     {
         private readonly object _lock = new object();
-        protected override Task EnrichModel(UserVO content, IUrlHelper urlHelper)
+        protected override Task EnrichModel(GroupVO content, IUrlHelper urlHelper)
         {
-            var path = "v1/users/";
+            var path = "v1/groups/";
             string link = GetLink(content.EmailAddress, urlHelper, path);
             
             content.Links.Add(new HyperMediaLink()
@@ -47,11 +47,11 @@ namespace AgentNetCore.Hypermedia
             });
             return null;
         }
-        private string GetLink(string email, IUrlHelper urlHelper, string path)
+        private string GetLink(string samAccountName, IUrlHelper urlHelper, string path)
         {
             lock (_lock)
             {
-                var url = new { controller = path, EmailAddress = email };
+                var url = new { controller = path, SamAccountName = samAccountName };
                 return new StringBuilder(urlHelper.Link("DefaultApi", url)).Replace("%2F", "/").ToString();
             };
         }

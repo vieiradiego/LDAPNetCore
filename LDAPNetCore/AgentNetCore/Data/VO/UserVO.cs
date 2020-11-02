@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Data.VO
 {
     [DataContract]
-    public class UserVO
+    public class UserVO : ISupportsHyperMedia
     {
         [DataMember(Order = 1, Name = "Name")] public string Name { get; set; }
         [DataMember(Order = 2)] public string Surname { get; set; }
@@ -42,5 +44,6 @@ namespace AgentNetCore.Data.VO
         [DataMember(Order = 34)] public string DirectReports { get; set; }
         [DataMember(Order = 35)] public string MemberOf { get; set; }
         [DataMember(Order = 36)] public string UserAccountControl { get; set; }
+        public List<HyperMediaLink> Links { get; set; } = new List<HyperMediaLink>();
     }
 }
