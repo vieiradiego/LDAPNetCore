@@ -87,7 +87,7 @@ namespace AgentNetCore.Service
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
             User result = new User();
-            result = ldapUser.FindBySamName(domain, samName);
+            result = ldapUser.FindByEmail(domain, samName);
             try
             {
                 if (result != null)

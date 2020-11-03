@@ -6,10 +6,23 @@
     <members>
         <member name="M:AgentNetCore.Controllers.AuthController.Signin(AgentNetCore.Data.VO.ClientVO)">
             <summary>
-            Teste
+            Autenticação do Client da API Agent.
             </summary>
-            <param name="user"></param>
-            <returns></returns>
+            <param name="client"></param>
+            <returns>Retorna os campos do Client</returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.AuthController.Refresh(AgentNetCore.Data.VO.TokenVO)">
+            <summary>
+            Renovação do Token para o Client da API Agent
+            </summary>
+            <param name="token"></param>
+            <returns>Retorna os campos do Token</returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.AuthController.Revoke">
+            <summary>
+            Revogação do Token para o Client da API Agent
+            </summary>
+            <returns>Retorno No Content</returns>
         </member>
         <member name="F:AgentNetCore.Context.UserRepository.UserAccountControl.SCRIPT">
              <summary>

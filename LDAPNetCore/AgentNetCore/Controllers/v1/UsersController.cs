@@ -86,14 +86,14 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(_userService.Update(user));
         }
 
-        // DELETE api/values/domain/email
-        [HttpDelete("{domain}/{samName}")]
+        // DELETE /domain&email
+        [HttpDelete]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete(string domain, string email)
+        public IActionResult Delete([FromQuery]string domain, [FromQuery]string email)
         {
             _userService.Delete(domain, email);
             return NoContent();

@@ -189,9 +189,10 @@ namespace AgentNetCore
             {
             });
 
-            app.UseSwaggerUI(c =>
+            app.UseSwaggerUI(option =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 API");
+                option.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 API");
+                //option.InjectStylesheet("/swagger-ui/custom.css");
             });
 
             var option = new RewriteOptions();

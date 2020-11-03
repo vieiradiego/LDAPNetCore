@@ -287,7 +287,7 @@ namespace AgentNetCore.Context
                 else
                 {
                     Console.WriteLine("\r\nUser not identify:\r\n\t");
-                    return user;
+                    return null;
                 }
 
             }
