@@ -9,7 +9,7 @@ namespace AgentNetCore.Service
 {
     public class GroupService : IGroupService
     {
-        private MySQLContext _mySQLContext;
+        private readonly MySQLContext _mySQLContext;
         private readonly GroupConverter _converter;
         public GroupService(MySQLContext mySQLContext)
         {

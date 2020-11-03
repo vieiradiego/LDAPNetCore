@@ -1,6 +1,7 @@
 ﻿using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using AgentNetCore.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
@@ -27,6 +28,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
@@ -41,6 +43,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get(string domain, string samName)
         {
@@ -55,6 +58,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(209)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Post([FromBody] GroupVO group)
         {
@@ -69,6 +73,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse((202), Type = typeof(GroupVO))]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Put([FromBody] GroupVO group)
         {
@@ -81,6 +86,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Delete(string domain, string samName)
         {

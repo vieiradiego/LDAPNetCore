@@ -1,10 +1,9 @@
 ﻿using AgentNetCore.Data.VO;
-using AgentNetCore.Model;
 using AgentNetCore.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
-using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Collections.Generic;
 using Tapioca.HATEOAS;
 
@@ -29,6 +28,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
@@ -48,6 +48,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [SwaggerResponse(404)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get(string email)
         {
@@ -62,6 +63,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(209)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Post([FromBody] UserVO user)
         {
@@ -76,6 +78,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse((202), Type = typeof(UserVO))]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Put([FromBody] UserVO user)
         {
@@ -88,6 +91,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Delete(string domain, string email)
         {

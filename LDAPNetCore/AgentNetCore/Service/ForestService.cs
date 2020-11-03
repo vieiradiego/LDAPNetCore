@@ -11,7 +11,7 @@ namespace AgentNetCore.Service
 {
     public class ForestService : IForestService
     {
-        private MySQLContext _mySQLContext;
+        private readonly MySQLContext _mySQLContext;
         private readonly ForestConverter _converter;
         public ForestService(MySQLContext mySQLContext)
         {
