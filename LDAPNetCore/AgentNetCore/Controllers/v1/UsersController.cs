@@ -10,17 +10,15 @@ using Tapioca.HATEOAS;
 namespace AgentNetCore.Controllers
 {
     [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]
     public class UsersController : ControllerBase
     {
         private IUserService _userService;
-        private readonly ILogger _logger;
-        public UsersController(IUserService userService, ILogger<UsersController> logger)
+        public UsersController(IUserService userService)
         {
             _userService = userService;
-            _logger = logger;
-
         }
         // GET api/users
         [HttpGet]
@@ -32,12 +30,12 @@ namespace AgentNetCore.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
-            _logger.LogInformation(this.ControllerContext.RouteData.Values["controller"].ToString() + "|" +
-                                   this.ControllerContext.RouteData.Values["action"].ToString() + "|" +
-                                   this.ControllerContext.RouteData.Values["version"].ToString() + "|" +
-                                   Request.Host + "|" +
-                                   System.DateTime.Now.ToString("dd-MMM-yyyy-HH:mm:ss")
-                                   );
+            //_logger.LogInformation(this.ControllerContext.RouteData.Values["controller"].ToString() + "|" +
+            //                       this.ControllerContext.RouteData.Values["action"].ToString() + "|" +
+            //                       this.ControllerContext.RouteData.Values["version"].ToString() + "|" +
+            //                       Request.Host + "|" +
+            //                       System.DateTime.Now.ToString("dd-MMM-yyyy-HH:mm:ss")
+            //                       );
             return Ok(_userService.FindAll());
         }
 

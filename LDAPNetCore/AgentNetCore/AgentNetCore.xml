@@ -24,6 +24,50 @@
             </summary>
             <returns>Retorno No Content</returns>
         </member>
+        <member name="M:AgentNetCore.Controllers.ForestsController.Get">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.ForestsController.Get(System.String)">
+            <summary>
+            
+            </summary>
+            <param name="domain"></param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:AgentNetCore.Controllers.GroupsController.Get" -->
+        <member name="M:AgentNetCore.Controllers.GroupsController.Get(System.String,System.String)">
+            <summary>
+            GET para um determinado grupo de segurança dos diretórios disponíveis
+            </summary>
+            <param name="domain"></param>
+            <param name="samName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.GroupsController.Post(AgentNetCore.Data.VO.GroupVO)">
+            <summary>
+            POST para um determinado grupo dos diretórios disponíveis
+            </summary>
+            <param name="group"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.GroupsController.Put(AgentNetCore.Data.VO.GroupVO)">
+            <summary>
+            PUT para um determinado grupo dos diretórios disponíveis
+            </summary>
+            <param name="group"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.GroupsController.Delete(System.String,System.String)">
+            <summary>
+            DELETE um determinado grupos dos diretórios disponíveis
+            </summary>
+            <param name="domain"></param>
+            <param name="samName"></param>
+            <returns></returns>
+        </member>
         <member name="F:AgentNetCore.Context.UserRepository.UserAccountControl.SCRIPT">
              <summary>
              The logon script is executed. 

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -31,7 +32,6 @@ namespace AgentNetCore
 
     public class Startup
     {
-        //private readonly ILogger _logger;
         public IConfiguration _configuration { get; }
         public IWebHostEnvironment _environment { get; }
 
@@ -90,7 +90,17 @@ namespace AgentNetCore
             services.AddDbContext<MySQLContext>(options => options.UseMySql(connectionString));
 
             //Add Versioning
-            services.AddApiVersioning();
+            services.AddVersionedApiExplorer(o =>
+            {
+                o.GroupNameFormat = "'v'VVV";
+                o.SubstituteApiVersionInUrl = true;
+            });
+            services.AddApiVersioning(config =>
+            {
+                config.DefaultApiVersion = new ApiVersion(1, 0);
+                config.AssumeDefaultVersionWhenUnspecified = true;
+                config.ReportApiVersions = true;
+            });
 
             //Add Content Negotiation
             services.AddMvc(options =>
@@ -121,15 +131,15 @@ namespace AgentNetCore
                 // specify our operation filter here.  
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-
                     Version = "v1",
                     Title = $"AgentNetCore - v1 API",
                     Description = "Trabalho de Conclusão de Curso - Implementação de Integração com o servidor de domínio através de API RESTful para as Empresas Marvel",
-                    TermsOfService = new Uri("https://www.google.com"),
+                    TermsOfService = new Uri("https://github.com/vieiradiego/LDAPNetCore"),
                     Contact = new OpenApiContact
                     {
                         Name = "Diego Vieira",
                         Email = "diegovieira.ti@gmail.com",
+                        Url = new Uri("https://twitter.com/DiegoVieira__"),
                     },
                     License = new OpenApiLicense
                     {
@@ -192,7 +202,6 @@ namespace AgentNetCore
             app.UseSwaggerUI(option =>
             {
                 option.SwaggerEndpoint("/swagger/v1/swagger.json", "v1 API");
-                //option.InjectStylesheet("/swagger-ui/custom.css");
             });
 
             var option = new RewriteOptions();

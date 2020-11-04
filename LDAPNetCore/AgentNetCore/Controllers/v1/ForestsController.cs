@@ -23,7 +23,10 @@ namespace AgentNetCore.Controllers
             _forestService = forestService;
             _logger = logger;
         }
-        //GET api/forests
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<ForestVO>))]
         [SwaggerResponse(204)]
@@ -38,7 +41,11 @@ namespace AgentNetCore.Controllers
             return Ok(forest);
         }
 
-        //GET api/forests/domain
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <returns></returns>
         [HttpGet("{domain}")]
         [SwaggerResponse((200), Type = typeof(ForestVO))]
         [SwaggerResponse(204)]

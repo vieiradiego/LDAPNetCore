@@ -17,12 +17,17 @@ namespace AgentNetCore.Controllers
     {
         private IGroupService _groupService;
         private readonly ILogger _logger;
-        public GroupsController(IGroupService groupService, ILogger<UsersController> logger)
+        public GroupsController(IGroupService groupService)
         {
             _groupService = groupService;
-            _logger = logger;
         }
-        //GET api/groups
+        /// <summary>
+        /// GET para todos os grupos de segurança dos diretórios disponíveis
+        /// </summary>
+        /// <remarks>
+        /// Retorna todos os objetos no formato GrupoVo
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma List<GroupVO></returns>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
         [SwaggerResponse(204)]
@@ -37,7 +42,12 @@ namespace AgentNetCore.Controllers
             return Ok(group);
         }
 
-        //GET api/groups/domain/samName
+        /// <summary>
+        /// GET para um determinado grupo de segurança dos diretórios disponíveis
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="samName"></param>
+        /// <returns></returns>
         [HttpGet("{domain}/{samName}")]
         [SwaggerResponse((200), Type = typeof(GroupVO))]
         [SwaggerResponse(204)]
@@ -52,7 +62,11 @@ namespace AgentNetCore.Controllers
             return Ok(group);
         }
 
-        // POST api/values
+        /// <summary>
+        /// POST para um determinado grupo dos diretórios disponíveis
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
         [HttpPost]
         [SwaggerResponse((201), Type = typeof(GroupVO))]
         [SwaggerResponse(209)]
@@ -68,7 +82,11 @@ namespace AgentNetCore.Controllers
             return newGroup;
         }
 
-        // PUT api/values
+        /// <summary>
+        /// PUT para um determinado grupo dos diretórios disponíveis
+        /// </summary>
+        /// <param name="group"></param>
+        /// <returns></returns>
         [HttpPut]
         [SwaggerResponse((202), Type = typeof(GroupVO))]
         [SwaggerResponse(400)]
@@ -81,7 +99,12 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(this._groupService.Update(group));
         }
 
-        // DELETE api/domain/samName/
+        /// <summary>
+        /// DELETE um determinado grupos dos diretórios disponíveis
+        /// </summary>
+        /// <param name="domain"></param>
+        /// <param name="samName"></param>
+        /// <returns></returns>
         [HttpDelete("{domain}/{samName}")]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
