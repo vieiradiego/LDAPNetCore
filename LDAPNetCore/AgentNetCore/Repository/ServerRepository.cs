@@ -89,6 +89,10 @@ namespace AgentNetCore.Repository
                 }
                 return cont;
             }
+            if (value.Contains("."))
+            {
+                return value;
+            }
             else
             {//DistinguishedName
                 string[] d = value.Split(",");

@@ -215,7 +215,9 @@ namespace AgentNetCore.Context
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
                 ServerRepository sr = new ServerRepository(_mySQLContext);
                 credential.Domain = sr.ConvertToDomain(pathDomain);
+                
                 DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
                 return GetResult(search.FindOne());

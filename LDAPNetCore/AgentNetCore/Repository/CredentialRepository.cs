@@ -7,6 +7,8 @@ using System.DirectoryServices.AccountManagement;
 using System.DirectoryServices.Protocols;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace AgentNetCore.Context
 {
@@ -32,7 +34,7 @@ namespace AgentNetCore.Context
             _User = c.User;
             _Pass = c.Pass;
         }
-       
+
         public string Domain
         {
             get

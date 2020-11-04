@@ -23,7 +23,7 @@ namespace AgentNetCore.Context
             var pass = ComputeHash(client.Password, new SHA256CryptoServiceProvider());
             //Client cC = new Client();
             //cC.FirstName = "Admin";
-            //cC.SurName= "istrator";
+            //cC.SurName = "istrator";
             //cC.SecretClient = client.UserName;
             //cC.SecretKey = pass;
             //_mySQLContext.Clients.Update(cC);
