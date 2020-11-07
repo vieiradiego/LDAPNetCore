@@ -1,7 +1,7 @@
 ﻿using AgentNetCore.Application;
 using AgentNetCore.Model;
 using AgentNetCore.Repository;
-using Microsoft.AspNetCore.Components.Forms;
+using AgentNetCore.Repository.Interface;
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
@@ -9,7 +9,7 @@ using System.DirectoryServices.AccountManagement;
 
 namespace AgentNetCore.Context
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly MySQLContext _mySQLContext;
         public UserRepository(MySQLContext mySQLContext)

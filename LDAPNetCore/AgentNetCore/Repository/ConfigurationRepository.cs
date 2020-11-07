@@ -1,13 +1,10 @@
 ﻿using AgentNetCore.Context;
 using AgentNetCore.Model;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AgentNetCore.Repository
 {
-    public class ConfigurationRepository
+    public class ConfigurationRepository : IConfigurationRepository
     {
         MySQLContext _mySQLContext;
         public ConfigurationRepository(MySQLContext mySQLContext)

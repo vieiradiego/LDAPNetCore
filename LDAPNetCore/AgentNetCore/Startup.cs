@@ -46,7 +46,7 @@ namespace AgentNetCore
         {
 
             //Add Auth, JWT and Token
-            // Add SigningConfiguration
+            //Add SigningConfiguration
             var signingConfigurations = new SigningConfiguration();
             services.AddSingleton(signingConfigurations);
 

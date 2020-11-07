@@ -7,7 +7,7 @@ using System.DirectoryServices.AccountManagement;
 
 namespace AgentNetCore.Context
 {
-    public class ComputerRepository
+    public class ComputerRepository : IComputerRepository
     {
         private readonly MySQLContext _mySQLContext;
         public ComputerRepository(MySQLContext mySQLContext)

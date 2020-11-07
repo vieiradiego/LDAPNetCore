@@ -12,7 +12,7 @@ using System.Text;
 
 namespace AgentNetCore.Context
 {
-    public class CredentialRepository
+    public class CredentialRepository : ICredentialRepository
     {
         private string _Domain;
         private string _User;
