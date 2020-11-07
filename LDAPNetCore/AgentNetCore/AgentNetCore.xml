@@ -37,7 +37,15 @@
             <param name="domain"></param>
             <returns></returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:AgentNetCore.Controllers.GroupsController.Get" -->
+        <member name="M:AgentNetCore.Controllers.GroupsController.Get">
+            <summary>
+            GET para todos os grupos de segurança dos diretórios disponíveis
+            </summary>
+            <remarks>
+            Retorna todos os objetos no formato GrupoVo
+            </remarks>
+            <returns>O retorno desse serviço é uma List de GroupVO </returns>
+        </member>
         <member name="M:AgentNetCore.Controllers.GroupsController.Get(System.String,System.String)">
             <summary>
             GET para um determinado grupo de segurança dos diretórios disponíveis

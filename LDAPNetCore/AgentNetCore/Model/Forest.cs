@@ -2,7 +2,7 @@
 
 namespace AgentNetCore.Model
 {
-    public class Forest
+    public class Forest : BaseEntity
     {
         public string Name { get; set; }
         public string DisplayName { get; set; }

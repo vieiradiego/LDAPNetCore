@@ -1,10 +1,10 @@
 ﻿using AgentNetCore.Data.VO;
-using AgentNetCore.Model;
+using AgentNetCore.Service.Interface;
 using System.Collections.Generic;
 
 namespace AgentNetCore.Service
 {
-    public interface IGroupService
+    public interface IGroupService : IService
     {
         GroupVO Create(GroupVO group);
         GroupVO Update(GroupVO group);

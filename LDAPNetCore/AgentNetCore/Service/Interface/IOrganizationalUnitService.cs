@@ -1,10 +1,10 @@
 ﻿using AgentNetCore.Data.VO;
-using AgentNetCore.Model;
+using AgentNetCore.Service.Interface;
 using System.Collections.Generic;
 
 namespace AgentNetCore.Service
 {
-    public interface IOrganizationalUnitService
+    public interface IOrganizationalUnitService : IService
     {
         OrganizationalUnitVO Create(OrganizationalUnitVO organizationalUnit);
         OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit);

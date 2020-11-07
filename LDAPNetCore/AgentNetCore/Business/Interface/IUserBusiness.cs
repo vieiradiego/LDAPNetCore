@@ -7,12 +7,8 @@ using System.Threading.Tasks;
 
 namespace AgentNetCore.Business
 {
-    public interface IClientBusiness : IBusiness
+    public interface IUserBusiness : IBusiness
     {
-        TokenVO ValidateCredentials(ClientVO user);
-
-        TokenVO ValidateCredentials(TokenVO token);
-
-        bool RevokeToken(string userName);
+     
     }
 }

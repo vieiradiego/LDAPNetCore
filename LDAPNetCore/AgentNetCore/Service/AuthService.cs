@@ -22,22 +22,23 @@ namespace AgentNetCore.Service
             _tokenConfigurations = tokenConfiguration;
         }
 
-        public object FindByLogin(ClientVO user)
+
+        public object FindByLogin(ClientVO client)
         {
             bool credentialsIsValid = false;
-            if (user != null && !string.IsNullOrWhiteSpace(user.UserName))
+            if (client != null && !string.IsNullOrWhiteSpace(client.UserName))
             {
-                var baseUser = _service.ValidateCredentials(user.UserName);
-                credentialsIsValid = (baseUser != null && user.UserName == baseUser.SecretClient && user.Password == baseUser.SecretKey);
+                var baseUser = _service.ValidateCredentials(client.UserName);
+                credentialsIsValid = (baseUser != null && client.UserName == baseUser.SecretClient && client.Password == baseUser.SecretKey);
             }
             if (credentialsIsValid)
             {
                 ClaimsIdentity identity = new ClaimsIdentity(
-                    new GenericIdentity(user.UserName, "Login"),
+                    new GenericIdentity(client.UserName, "Login"),
                         new[]
                         {
                             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString("N")),
-                            new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName)
+                            new Claim(JwtRegisteredClaimNames.UniqueName, client.UserName)
                         }
                     );
 

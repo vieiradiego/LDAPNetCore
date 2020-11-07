@@ -13,7 +13,7 @@ namespace AgentNetCore.Controllers
     [ApiVersion("2.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : ControllerBase, IController
     {
         private IUserService _userService;
         public UsersController(IUserService userService)

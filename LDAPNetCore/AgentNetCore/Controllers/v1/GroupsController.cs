@@ -13,7 +13,7 @@ namespace AgentNetCore.Controllers
     [ApiVersion("1.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]
-    public class GroupsController : ControllerBase
+    public class GroupsController : ControllerBase, IController
     {
         private IGroupService _groupService;
         private readonly ILogger _logger;
@@ -21,13 +21,14 @@ namespace AgentNetCore.Controllers
         {
             _groupService = groupService;
         }
+        
         /// <summary>
         /// GET para todos os grupos de segurança dos diretórios disponíveis
         /// </summary>
         /// <remarks>
         /// Retorna todos os objetos no formato GrupoVo
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma List<GroupVO></returns>
+        /// <returns>O retorno desse serviço é uma List de GroupVO </returns>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
         [SwaggerResponse(204)]

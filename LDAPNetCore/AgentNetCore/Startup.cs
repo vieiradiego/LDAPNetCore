@@ -108,6 +108,7 @@ namespace AgentNetCore
                 options.RespectBrowserAcceptHeader = true;
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("text/xml"));
                 options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
+
             })
             .AddXmlSerializerFormatters()
             .AddJsonOptions(options =>

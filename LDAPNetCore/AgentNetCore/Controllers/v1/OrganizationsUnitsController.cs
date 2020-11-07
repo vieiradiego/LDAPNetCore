@@ -1,5 +1,4 @@
 ﻿using AgentNetCore.Data.VO;
-using AgentNetCore.Model;
 using AgentNetCore.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +12,7 @@ namespace AgentNetCore.Controllers
     [ApiVersion("1.0")]
     [ApiController]
     [Route("v{version:apiVersion}/[controller]")]
-    public class OrganizationsUnitsController : ControllerBase
+    public class OrganizationsUnitsController : ControllerBase, IController
     {
         private IOrganizationalUnitService _orgService;
         private readonly ILogger _logger;

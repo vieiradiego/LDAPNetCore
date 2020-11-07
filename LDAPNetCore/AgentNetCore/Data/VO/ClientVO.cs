@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace AgentNetCore.Data.VO
+﻿namespace AgentNetCore.Data.VO
 {
     /// <summary>
     /// Client VO Teste
