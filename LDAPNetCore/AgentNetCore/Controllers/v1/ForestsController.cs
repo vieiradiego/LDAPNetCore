@@ -24,9 +24,12 @@ namespace AgentNetCore.Controllers
             _logger = logger;
         }
         /// <summary>
-        /// 
+        /// RECUPERAR todos os objetos do Domínios configurados
         /// </summary>
-        /// <returns></returns>
+        /// <remarks>
+        /// Retorna uma lista de objetos no formato ForestVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma lista de ForestVO </returns>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<ForestVO>))]
         [SwaggerResponse(204)]
@@ -42,18 +45,21 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// 
+        /// RECUPERAR os dados para um determinado Domínio
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato ForestVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um determinado ForestVO encontrado</returns>
         /// <param name="domain"></param>
-        /// <returns></returns>
-        [HttpGet("{domain}")]
+        [HttpGet("domain")]
         [SwaggerResponse((200), Type = typeof(ForestVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get(string domain)
+        public IActionResult Get([FromQuery] string domain)
         {
             var forest = _forestService.FindAll(domain);
             if (forest == null) return NotFound();

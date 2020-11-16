@@ -56,6 +56,13 @@ namespace AgentNetCore.Service
             return _converter.Parse(ldapUser.FindByEmail(email));
         }
 
+        public UserVO FindBySamName(string domain, string samName)
+        {
+            UserRepository ldapUser = new UserRepository(_mySQLContext);
+            
+            return _converter.Parse(ldapUser.FindBySamName(domain, samName));
+        }
+
         public UserVO Update(UserVO user)
         {
             try
@@ -100,5 +107,7 @@ namespace AgentNetCore.Service
                 throw ex;
             }
         }
+
+        
     }
 }

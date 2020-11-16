@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace AgentNetCore.Service
 {
-    public interface IGroupService : IService
+    public interface IGroupService : IService<IGroupService>
     {
         GroupVO Create(GroupVO group);
         GroupVO Update(GroupVO group);

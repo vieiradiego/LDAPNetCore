@@ -21,8 +21,15 @@ namespace AgentNetCore.Controllers
             _orgService = orgService;
             _logger = logger;
         }
-        //GET api/organizationunits/domain
-        [HttpGet("{domain}")]
+        /// <summary>
+        /// RECUPERAR todas as Unidades Organizacionais (OU)
+        /// </summary>
+        /// <remarks>
+        /// Retorna uma lista de objetos no formato OrganizationalUnitVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma lista de OrganizationalUnitVO </returns>
+        /// <param name="domain"></param>
+        [HttpGet("domain")]
         [SwaggerResponse((200), Type = typeof(List<OrganizationalUnitVO>))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -36,8 +43,17 @@ namespace AgentNetCore.Controllers
             return Ok(orgUnit);
         }
 
-        //GET api/organizationunit/domain/samName
-        [HttpGet("{domain}/{nameOU}")]
+        /// <summary>
+        /// RECUPERAR os dados de uma determinada Unidade Organizacional (OU)
+        /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato OrganizationalUnitVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um determinado OrganizationalUnitVO encontrado</returns>
+        /// <param name="domain"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        [HttpGet("domain/name")]
         [SwaggerResponse((200), Type = typeof(OrganizationalUnitVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -45,14 +61,21 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get(string domain, string nameOU)
+        public IActionResult Get([FromQuery] string domain, [FromQuery] string name)
         {
-            var orgUnit = _orgService.FindByName(domain, nameOU);
+            var orgUnit = _orgService.FindByName(domain, name);
             if (orgUnit == null) return NotFound();
             return Ok(orgUnit);
         }
 
-        // POST api/organizationunit/orgUnit
+        /// <summary>
+        /// CRIAR uma Unidade Organizacional (OU)
+        /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato OrganizationalUnitVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um OrganizationalUnitVO criado</returns>
+        /// <param name="orgUnit"></param>
         [HttpPost]
         [SwaggerResponse((201), Type = typeof(OrganizationalUnitVO))]
         [SwaggerResponse(209)]
@@ -68,7 +91,14 @@ namespace AgentNetCore.Controllers
             return newOrgUnit;
         }
 
-        // PUT api/organizationunit/orgUnit
+        /// <summary>
+        /// ATUALIZAR uma Unidade Organizacional (OU)
+        /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato OrganizationalUnitVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um OrganizationalUnitVO atualizado</returns>
+        /// <param name="orgUnit"></param>
         [HttpPut]
         [SwaggerResponse((202), Type = typeof(UserVO))]
         [SwaggerResponse(400)]
@@ -81,14 +111,22 @@ namespace AgentNetCore.Controllers
             return new ObjectResult(_orgService.Update(orgUnit));
         }
 
-        // DELETE api/organizationunit/domain/samName/
-        [HttpDelete("{domain}/{samName}")]
+        /// <summary>
+        /// DELETAR uma Unidade Organizacional (OU)
+        /// </summary>
+        /// <remarks>
+        /// Não há retorno de objetos nesse método
+        /// </remarks>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="domain"></param>
+        /// <param name="samName"></param>
+        [HttpDelete("domain/samName")]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete(string domain, string samName)
+        public IActionResult Delete([FromQuery] string domain, [FromQuery] string samName)
         {
             this._orgService.Delete(domain, samName);
             return NoContent();

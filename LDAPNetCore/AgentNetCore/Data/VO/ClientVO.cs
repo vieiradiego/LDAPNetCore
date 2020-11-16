@@ -1,17 +1,24 @@
-﻿namespace AgentNetCore.Data.VO
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Tapioca.HATEOAS;
+
+namespace AgentNetCore.Data.VO
 {
+
     /// <summary>
-    /// Client VO Teste
+    /// Cliente VO
     /// </summary>
-    public class ClientVO
+    [DataContract]
+    public class ClientVO : ISupportsHyperMedia
     {
-        /// <summary>
-        /// Passowrd
-        /// </summary>
-        public string Password { get; set; }
         /// <summary>
         /// User Name
         /// </summary>
-        public string UserName { get; set; }
+        [DataMember(Order = 1)] public string UserName { get; set; }
+        /// <summary>
+        /// Passowrd
+        /// </summary>
+        [DataMember(Order = 2)] public string Password { get; set; }
+        public List<HyperMediaLink> Links { get; set; } = new List<HyperMediaLink>();
     }
 }

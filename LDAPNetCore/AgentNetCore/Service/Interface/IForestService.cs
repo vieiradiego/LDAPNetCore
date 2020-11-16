@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace AgentNetCore.Service
 {
-    public interface IForestService : IService
+    public interface IForestService : IService<IForestService>
     {
         List<ForestVO> FindAll();
         List<ForestVO> FindAll(string domain);

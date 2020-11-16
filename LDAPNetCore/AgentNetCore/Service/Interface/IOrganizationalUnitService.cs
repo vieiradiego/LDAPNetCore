@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace AgentNetCore.Service
 {
-    public interface IOrganizationalUnitService : IService
+    public interface IOrganizationalUnitService : IService<IOrganizationalUnitService>
     {
         OrganizationalUnitVO Create(OrganizationalUnitVO organizationalUnit);
         OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit);

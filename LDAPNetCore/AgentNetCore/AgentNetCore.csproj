@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\v2\**" />
+    <Content Remove="Controllers\v2\**" />
+    <EmbeddedResource Remove="Controllers\v2\**" />
+    <None Remove="Controllers\v2\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="C:\Users\GR_NOTE\.nuget\packages\mysql.data.entityframework\8.0.22\contentFiles\any\netstandard2.1\app.config.transform" />
     <Content Remove="C:\Users\GR_NOTE\.nuget\packages\mysql.data.entityframework\8.0.22\contentFiles\any\netstandard2.1\web.config.transform" />
   </ItemGroup>

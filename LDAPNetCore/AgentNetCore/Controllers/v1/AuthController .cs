@@ -19,10 +19,14 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// Autenticação do Client da API Agent.
+        /// AUTENTICAR um Cliente.
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato TokenVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um determinado TokenVO 
+        /// com os dados necessários para acessar a API REST</returns>
         /// <param name="client"></param>
-        /// <returns>Retorna os campos do Client</returns>
         [HttpPost]
         [Route("signin")]
         public IActionResult Signin([FromBody] ClientVO client)
@@ -33,10 +37,13 @@ namespace AgentNetCore.Controllers
             return Ok(token);
         }
         /// <summary>
-        /// Renovação do Token para o Client da API Agent
+        /// ATUALIZAR os dados de acesso de um Cliente.
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato TokenVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um determinado TokenVO com os dados necessários para acessar a API REST</returns>
         /// <param name="token"></param>
-        /// <returns>Retorna os campos do Token</returns>
         [HttpPost]
         [Route("refresh")]
         public IActionResult Refresh([FromBody] TokenVO token)
@@ -48,9 +55,12 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// Revogação do Token para o Client da API Agent
+        /// ATUALIZAR os dados de acesso de um Cliente.
         /// </summary>
-        /// <returns>Retorno No Content</returns>
+        /// <remarks>
+        /// Não há retorno de objetos nesse método
+        /// </remarks>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
         [HttpGet]
         [Route("revoke")]
         [Authorize("Bearer")]

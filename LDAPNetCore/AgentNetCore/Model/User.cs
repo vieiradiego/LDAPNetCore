@@ -7,12 +7,10 @@ using System.DirectoryServices.AccountManagement;
 namespace AgentNetCore.Model
 {
     public class User : BaseEntity
-    {   
-        public string Name { get; set; }
-        public string Surname { get; set; }
+    {
         public string LogonName { get; set; }
         public string FirstName { get; set; }
-        public string DisplayName { get; set; }
+        public string Surname { get; set; }
         public string Inicials { get; set; }
         public string OfficePhone { get; set; }
         public string MobilePhone { get; set; }
@@ -37,13 +35,8 @@ namespace AgentNetCore.Model
         public bool ChangePasswordAtLogon { get; set; }
         public string AccountPassword { get; set; }
         public DateTime AccountExpirationDate { get; set; }
-        public string PathDomain { get; set; }
-        public string Domain { get; set; }
-        public string SamAccountName { get; set; }
-        public string DistinguishedName { get; set; }
         public string DirectReports { get; set; }
         public string MemberOf { get; set; }
         public string UserAccountControl { get; set; }
-        
     }
 }

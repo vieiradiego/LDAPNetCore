@@ -121,7 +121,8 @@ namespace AgentNetCore.Context
                 CredentialRepository connect = new CredentialRepository(_mySQLContext);
                 connect.Domain = domain;
                 ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                string server = sr.GetPathByServer(domain);
+                DirectoryEntry dirEntry = new DirectoryEntry(server, connect.User, connect.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<User> userList = new List<User>();
                 search.Filter = "(&(objectCategory=User)(objectClass=person))";

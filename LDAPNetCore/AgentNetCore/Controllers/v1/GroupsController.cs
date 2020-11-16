@@ -21,14 +21,14 @@ namespace AgentNetCore.Controllers
         {
             _groupService = groupService;
         }
-        
+
         /// <summary>
-        /// GET para todos os grupos de segurança dos diretórios disponíveis
+        /// RECUPERAR todos os Grupos
         /// </summary>
         /// <remarks>
-        /// Retorna todos os objetos no formato GrupoVo
+        /// Retorna uma lista de objetos no formato GroupVO
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma List de GroupVO </returns>
+        /// <returns>O retorno desse serviço é uma lista de GroupVO </returns>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
         [SwaggerResponse(204)]
@@ -44,19 +44,22 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// GET para um determinado grupo de segurança dos diretórios disponíveis
+        /// RECUPERAR os dados para um determinado Grupo
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato GroupVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um determinado GroupVO encontrado</returns>
         /// <param name="domain"></param>
         /// <param name="samName"></param>
-        /// <returns></returns>
-        [HttpGet("{domain}/{samName}")]
+        [HttpGet("domain/samName")]
         [SwaggerResponse((200), Type = typeof(GroupVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get(string domain, string samName)
+        public IActionResult GetBySamName(string domain, string samName)
         {
             var group = this._groupService.FindBySamName(domain, samName);
             if (group == null) return NotFound();
@@ -64,10 +67,13 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// POST para um determinado grupo dos diretórios disponíveis
+        /// CRIAR um Grupo
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato GroupVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um GroupVO criado</returns>
         /// <param name="group"></param>
-        /// <returns></returns>
         [HttpPost]
         [SwaggerResponse((201), Type = typeof(GroupVO))]
         [SwaggerResponse(209)]
@@ -84,10 +90,13 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// PUT para um determinado grupo dos diretórios disponíveis
+        /// ATUALIZAR um Grupo
         /// </summary>
+        /// <remarks>
+        /// Retorna um objeto no formato GroupVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é um GroupVO atualizado</returns>
         /// <param name="group"></param>
-        /// <returns></returns>
         [HttpPut]
         [SwaggerResponse((202), Type = typeof(GroupVO))]
         [SwaggerResponse(400)]
@@ -101,12 +110,15 @@ namespace AgentNetCore.Controllers
         }
 
         /// <summary>
-        /// DELETE um determinado grupos dos diretórios disponíveis
+        /// DELETAR um Grupo
         /// </summary>
+        /// <remarks>
+        /// Não há retorno de objetos nesse método
+        /// </remarks>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="domain"></param>
         /// <param name="samName"></param>
-        /// <returns></returns>
-        [HttpDelete("{domain}/{samName}")]
+        [HttpDelete("domain/samName")]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
@@ -115,6 +127,27 @@ namespace AgentNetCore.Controllers
         public IActionResult Delete(string domain, string samName)
         {
             this._groupService.Delete(domain, samName);
+            return NoContent();
+        }
+        /// <summary>
+        /// RECUPERAR os Usuários de um Grupo
+        /// </summary>
+        /// <remarks>
+        /// Retorna uma lista de objetos no formato UserVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma lista de UserVO encontrados pelo Usuário informado</returns>
+        /// <param name="group"></param>
+        [HttpGet("users")]
+        [SwaggerResponse((200), Type = typeof(List<UserVO>))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [SwaggerResponse(404)]
+        [Authorize("Bearer")]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public IActionResult GetUsers([FromBody] GroupVO group)
+        {
+            //_userService.Delete(domain, email);
             return NoContent();
         }
     }

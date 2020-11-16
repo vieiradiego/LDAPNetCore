@@ -1,19 +1,22 @@
 ﻿using AgentNetCore.Data.VO;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Hypermedia
 {
-    public class UserEnricher : ObjectContentResponseEnricher<UserVO>
+    public class ClientEnricher : ObjectContentResponseEnricher<ClientVO>
     {
         private readonly object _lock = new object();
-        protected override Task EnrichModel(UserVO content, IUrlHelper urlHelper)
+        protected override Task EnrichModel(ClientVO content, IUrlHelper urlHelper)
         {
-            var path = "v1/users/";
-            string link = GetLink(content.SamAccountName, urlHelper, path);
-
+            var path = "v1/clients/";
+            string link = GetLink(content.UserName, urlHelper, path);
+            
             content.Links.Add(new HyperMediaLink()
             {
                 Action = HttpActionVerb.GET,
@@ -44,13 +47,12 @@ namespace AgentNetCore.Hypermedia
             });
             return null;
         }
-        private string GetLink(string samName, IUrlHelper urlHelper, string path)
+        private string GetLink(string userName, IUrlHelper urlHelper, string path)
         {
             lock (_lock)
             {
-                //var url = new { controller = path, SamAccountName = samName };
-                var url = new { controller = path + samName };
-                return new StringBuilder((urlHelper.Link("DefaultApi", url)).Replace("%2F", "/")).Replace("?", "").ToString();
+                var url = new { controller = path, UserName = userName };
+                return new StringBuilder(urlHelper.Link("DefaultApi", url)).Replace("%2F", "/").ToString();
             };
         }
     }

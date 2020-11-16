@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 
 namespace AgentNetCore.Service.Interface
 {
-    public interface IService
+    public interface IService<T>
     {
+        
     }
 }

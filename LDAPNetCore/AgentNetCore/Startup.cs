@@ -1,4 +1,5 @@
-﻿using AgentNetCore.Business;
+﻿using AgentNetCore.Application;
+using AgentNetCore.Business;
 using AgentNetCore.Context;
 using AgentNetCore.Hypermedia;
 using AgentNetCore.Repository.Interface;
@@ -106,8 +107,10 @@ namespace AgentNetCore
             services.AddMvc(options =>
             {
                 options.RespectBrowserAcceptHeader = true;
-                options.FormatterMappings.SetMediaTypeMappingForFormat("xml", MediaTypeHeaderValue.Parse("text/xml"));
-                options.FormatterMappings.SetMediaTypeMappingForFormat("json", MediaTypeHeaderValue.Parse("application/json"));
+                options.FormatterMappings.SetMediaTypeMappingForFormat
+                    ("xml", MediaTypeHeaderValue.Parse("text/xml"));
+                options.FormatterMappings.SetMediaTypeMappingForFormat
+                    ("json", MediaTypeHeaderValue.Parse("application/json"));
 
             })
             .AddXmlSerializerFormatters()
@@ -130,6 +133,7 @@ namespace AgentNetCore
             services.AddSwaggerGen(options =>
             {
                 // specify our operation filter here.  
+                options.DocumentFilter<CustomDocumentFilter>();
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",

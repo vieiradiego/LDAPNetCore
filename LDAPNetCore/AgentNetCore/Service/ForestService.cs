@@ -3,6 +3,7 @@ using AgentNetCore.Data.Converters;
 using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using AgentNetCore.Repository;
+using AgentNetCore.Service.Interface;
 using System;
 using System.Collections.Generic;
 

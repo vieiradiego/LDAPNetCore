@@ -2,8 +2,9 @@
 
 namespace AgentNetCore.Model
 {
-    public class Server : BaseEntity
+    public class Server
     {
+
         public long? Id { get; set; }
         public string Domain { get; set; }
         public string Address { get; set; }
