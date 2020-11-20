@@ -9,12 +9,6 @@ using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
 {
-    //_logger.LogInformation(this.ControllerContext.RouteData.Values["controller"].ToString() + "|" +
-    //                       this.ControllerContext.RouteData.Values["action"].ToString() + "|" +
-    //                       this.ControllerContext.RouteData.Values["version"].ToString() + "|" +
-    //                       Request.Host + "|" +
-    //                       System.DateTime.Now.ToString("dd-MMM-yyyy-HH:mm:ss")
-    //                       );
     [ApiVersion("1.0")]
     [ApiVersion("2.0")]
     [ApiController]
@@ -22,6 +16,7 @@ namespace AgentNetCore.Controllers
     public class UsersController : ControllerBase, IController
     {
         private IUserService _userService;
+        private readonly ILogger _logger;
         public UsersController(IUserService userService)
         {
             _userService = userService;
@@ -42,32 +37,9 @@ namespace AgentNetCore.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Get()
         {
-            
             return Ok(_userService.FindAll());
         }
 
-        /// <summary>
-        /// RECUPERAR os dados para um determinado Usuário
-        /// </summary>
-        /// <remarks>
-        /// Retorna um objeto no formato UserVO
-        /// </remarks>
-        /// <returns>O retorno desse serviço é um determinado UserVO encontrado</returns>
-        /// <param name="email"></param>
-        [HttpGet("email")]
-        [SwaggerResponse((200), Type = typeof(UserVO))]
-        [SwaggerResponse(204)]
-        [SwaggerResponse(400)]
-        [SwaggerResponse(401)]
-        [SwaggerResponse(404)]
-        [Authorize("Bearer")]
-        [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetByEmail([FromQuery] string email)
-        {
-            var user = _userService.FindByEmail(email);
-            if (user == null) return NotFound();
-            return Ok(user);
-        }
         /// <summary>
         /// RECUPERAR os dados de um determinado Usuário
         /// </summary>
@@ -75,9 +47,12 @@ namespace AgentNetCore.Controllers
         /// Retorna um objeto no formato UsuarioVO
         /// </remarks>
         /// <returns>O retorno desse serviço é um determinado UsuarioVO encontrado</returns>
-        /// <param name="domain"></param>
+        /// <param name="dn"></param>
+        /// <param name="email"></param>
         /// <param name="samName"></param>
-        [HttpGet("domain/samName")]
+        /// <param name="firstName"></param>
+        /// <param name="lastName"></param>
+        [HttpGet("find")]
         [SwaggerResponse((200), Type = typeof(UserVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -85,11 +60,44 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetBySamName([FromQuery] string domain, [FromQuery] string samName)
+        public IActionResult Find([FromQuery] string dn,      [FromQuery] string email, [FromQuery] string samName,
+                                  [FromQuery] string firstName, [FromQuery] string lastName)
         {
-            var user = _userService.FindBySamName(domain, samName);
-            if (user == null) return NotFound();
-            return Ok(user);
+            
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(email))
+            {
+                var user = _userService.FindByEmail(dn, email);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samName))
+            {
+                var user = _userService.FindBySamName(dn, samName);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
+            {
+                var user = _userService.FindByName(dn, firstName, lastName);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(firstName))
+            {
+                var user = _userService.FindByFirstName(dn, firstName);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(lastName))
+            {
+                var user = _userService.FindByLastName(dn, lastName);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -142,17 +150,17 @@ namespace AgentNetCore.Controllers
         /// Não há retorno de objetos nesse método
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
-        /// <param name="domain"></param>
-        /// <param name="email"></param>
-        [HttpDelete("domain/samName")]
+        /// <param name="dn"></param>
+        /// <param name="samname"></param>
+        [HttpDelete]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete([FromQuery]string domain, [FromQuery]string email)
+        public IActionResult Delete([FromQuery] string dn, [FromQuery] string samname)
         {
-            _userService.Delete(domain, email);
+            _userService.Delete(dn, samname);
             return NoContent();
         }
         /// <summary>
@@ -162,7 +170,7 @@ namespace AgentNetCore.Controllers
         /// Retorna uma lista de objetos no formato GrupoVO
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de GrupoVO encontrados pelo Usuário informado</returns>
-        /// <param name="user"></param>
+        /// <param name="samNameUser"></param>
         [HttpGet("groups")]
         [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
         [SwaggerResponse(204)]
@@ -171,7 +179,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetGroups([FromBody] UserVO user)
+        public IActionResult GetGroups(string samNameUser)
         {
             //_userService.Delete(domain, email);
             return NoContent();

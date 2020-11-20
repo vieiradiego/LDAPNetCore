@@ -63,9 +63,7 @@ namespace AgentNetCore.Migrations
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Domain = table.Column<string>(nullable: true),
                     Address = table.Column<string>(nullable: true),
-                    Port = table.Column<string>(nullable: true),
-                    PathDomain = table.Column<string>(nullable: true),
-                    Container = table.Column<string>(nullable: true)
+                    Port = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {

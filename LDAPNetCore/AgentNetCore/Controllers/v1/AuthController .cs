@@ -2,6 +2,7 @@
 using AgentNetCore.Data.VO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace AgentNetCore.Controllers
 {
@@ -12,6 +13,7 @@ namespace AgentNetCore.Controllers
     public class AuthController : ControllerBase
     {
         private IClientBusiness _loginBusiness;
+        private readonly ILogger _logger;
 
         public AuthController(IClientBusiness loginBusiness)
         {

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace AgentNetCore.Migrations
 {
-    public partial class DumpCreate : Migration
+    public partial class DumpData : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

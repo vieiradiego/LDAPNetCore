@@ -23,12 +23,10 @@ namespace AgentNetCore.Repository
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
                 ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
-                string domain = config.GetConfiguration("DefaultDomain");
-                credential.Domain = domain;
-                string pathDomain = serverRepo.GetPathByServer(domain);
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                string dn = config.GetConfiguration("DefaultDN");
+                credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = String.Format("(&(objectCategory={0})(name={1}))", "container", ObjectApplication.Category.system);
                 SearchResultCollection forestsResult = search.FindAll();
@@ -101,7 +99,6 @@ namespace AgentNetCore.Repository
                                 break;
                             case "adspath":
                                 forest.PathDomain = myCollection.ToString();
-                                forest.Domain = sr.ConvertToDomain(myCollection.ToString());
                                 break;
                             case "l":
                                 forest.City = myCollection.ToString();

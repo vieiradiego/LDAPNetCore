@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgentNetCore.Migrations
 {
     [DbContext(typeof(MySQLContext))]
-    [Migration("20201103022446_InitialCreate")]
+    [Migration("20201120025330_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -94,13 +94,7 @@ namespace AgentNetCore.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
-                    b.Property<string>("Container")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
                     b.Property<string>("Domain")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("PathDomain")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
                     b.Property<string>("Port")

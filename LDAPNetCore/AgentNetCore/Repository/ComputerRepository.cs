@@ -20,14 +20,17 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                PrincipalContext pc = new PrincipalContext(ContextType.Machine,computer.SamAccountName,computer.PathDomain);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = computer.DistinguishedName; 
+                PrincipalContext pc = new PrincipalContext(ContextType.Machine,computer.SamAccountName, credential.Path);
                 ComputerPrincipal computerPrincipal = new ComputerPrincipal(pc);
                 computerPrincipal = ComputerPrincipal.FindByIdentity(pc, computer.SamAccountName);
+                
                 if (computerPrincipal != null)
                 {
                     ServerRepository sr = new ServerRepository(_mySQLContext);
-                    DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(computer.PathDomain), connect.User, connect.Pass);
+                    DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                    
                     DirectoryEntry newComputer = dirEntry.Children.Add("CN=" + computerPrincipal.SamAccountName, "computer");
                     newComputer.Properties["samAccountName"].Value = computer.SamAccountName;
                     newComputer.CommitChanges();
@@ -56,14 +59,15 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                PrincipalContext pc = new PrincipalContext(ContextType.Machine, computer.SamAccountName, computer.PathDomain);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = computer.DistinguishedName;
+                PrincipalContext pc = new PrincipalContext(ContextType.Machine, computer.SamAccountName, credential.Path);
                 ComputerPrincipal computerPrincipal = new ComputerPrincipal(pc);
                 computerPrincipal = ComputerPrincipal.FindByIdentity(pc, computer.SamAccountName);
                 if (computerPrincipal != null)
                 {
                     ServerRepository sr = new ServerRepository(_mySQLContext);
-                    DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(computer.PathDomain), connect.User, connect.Pass);
+                    DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                     DirectoryEntry newComputer = dirEntry.Children.Add("CN=" + computerPrincipal.SamAccountName, "computer");
                     newComputer.Properties["samAccountName"].Value = computer.SamAccountName;
                     newComputer.CommitChanges();
@@ -87,10 +91,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = computer.PathDomain;
-                PrincipalContext pc = new PrincipalContext(ContextType.Machine, computer.SamAccountName, computer.PathDomain);
-                
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = computer.DistinguishedName;
+                PrincipalContext pc = new PrincipalContext(ContextType.Machine, computer.SamAccountName, credential.Path);
                 ComputerPrincipal computerPrincipal = new ComputerPrincipal(pc);
                 computerPrincipal = ComputerPrincipal.FindByIdentity(pc, computer.SamAccountName);
                 if (computerPrincipal != null)
@@ -120,14 +123,13 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        private Computer FindOne(string domain, string campo, string valor)
+        private Computer FindOne(string dn, string campo, string valor)
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
-                connect.Domain = domain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
+                credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 Computer computer = new Computer();
                 search.Filter = "(" + campo + "=" + valor + ")";

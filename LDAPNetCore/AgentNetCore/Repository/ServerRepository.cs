@@ -4,7 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.DirectoryServices;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AgentNetCore.Repository
@@ -16,161 +19,70 @@ namespace AgentNetCore.Repository
         {
             _mySQLContext = mySQLContext;
         }
-
-        public string GetPathByServer(string domain)
-        {// INPUT  marveldomain.local
-         // OUTPUT Path
-            List<Server> servers = GetServers(domain);
-            foreach (var server in servers)
-            {
-                string path = SetPath(server);
-                if (Exists(path))
-                {
-                    return path;
-                }
-            }
-            return null;
-        }
-        private List<Server> GetServers(string domain)
+        private List<Server> FindServers(string domain)
         {
             return _mySQLContext.Servers.Where(p => p.Domain.Equals(domain)).ToList();
         }
-        private string SetPath(Server server)
+        public List<Server> GetServers(string domain)
         {
-            return "LDAP://" + server.Address + ":" + server.Port + "/" + server.Container;
-        }
-        public string GetPathByDN(string distinguishedName)
-        {// Input  (distinguishedName) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-         // Output (LDAP Path) LDAP://SERVER:PORT/OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-
-            List<Server> servers = GetServers(ConvertToDomain(distinguishedName));
-            foreach (var server in servers)
+            List<Server> serversVerify = new List<Server>();
+            List<Server> servers = FindServers(domain);
+            for (int i = 0; i < servers.Count; i++)
             {
-                string path = "LDAP://" + server.Address + ":" + server.Port + "/" + distinguishedName;
-                if (Exists(path))
+                try
                 {
-                    return path;
-                }
-            }
-            return null;
-        }
-        public string ConvertToDomain(string value)
-        {// Input  (distinguishedName, Path, email) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-         // Output (domain) marveldomain.local
-            string cont = "";
-            value = value.ToLower();
-            if (value.Contains("@"))
-            {//Email
-                string[] d = value.Split("@");
-                return d[1];
-            }
-            if (value.Contains("ldap://"))
-            {// Path
-                string[] d = value.Split("/");
-                for (int i = 0; i < d.Length; i++)
-                {
-                    if ((d[i].Contains("dc=")) && (d[i].Contains(",")))
+                    if (IsServerUp(servers[i].Address, Int32.Parse(servers[i].Port),3))
                     {
-                        string[] g = d[i].Split(",");
-                        for (int e = 0; e < g.Length; e++)
-                        {
-                            if (g[e].Contains("dc="))
-                            {
-                                cont = cont + g[e];
-                                cont = cont.Replace("dc=", "");
-                                cont = cont.ToLower();
-                                if (g.Length != (e + 1))
-                                {
-                                    cont = cont + ".";
-                                }
-                            }
-                        }
+                        serversVerify.Add(servers[i]);
                     }
                 }
-                return cont;
-            }
-            if (value.Contains("."))
-            {
-                return value;
-            }
-            else
-            {//DistinguishedName
-                string[] d = value.Split(",");
-                for (int i = 0; i < d.Length; i++)
+                catch (Exception e)
                 {
-                    if (d[i].Contains("dc="))
-                    {
-                        cont = cont + d[i];
-                        cont = cont.Replace("dc=", "");
-                        cont = cont.ToLower();
-                        if (d.Length != (i + 1))
-                        {
-                            cont = cont + ".";
-                        }
-                    }
-                }
-                return cont;
-            }
-        }
-        public string RemoveCN(string value)
-        {// INPUT (Path ) ldap://192.168.0.99:389/cn=user,ou=users,ou=unitedstates,ou=marvel,ou=marvel company,dc=marveldomain,dc=local
-         // OUTPUT (Path no <cn=> tag) ldap://192.168.0.99:389/ou=users,ou=unitedstates,ou=marvel,ou=marvel company,dc=marveldomain,dc=local
-            string path = "";
-            value = value.ToLower();
-            if (value.Contains("ldap://"))
-            {
-                string[] itens1 = value.Split(",");
-                for (int i = 0; i < itens1.Length; i++)
-                {
-                    if (itens1[i].Contains("ldap:"))
-                    {//Splitar na Barra
-
-                        string[] itens2 = itens1[i].Split("/");
-                        for (int j = 0; j < itens2.Length; j++)
-                        {
-                            if (itens2[j].Contains("ldap:"))
-                            {
-                                path = itens2[j].ToUpper() + "//";
-                                continue;
-                            }
-                            if (itens2[j].Contains(":"))
-                            {
-                                path = path + itens2[j] + "/";
-                                continue;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        path = path + itens1[i];
-                        if (itens1.Length != (i + 1))
-                        {
-                            path = path + ",";
-                        }
-                    }
+                    Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
             }
-            return path;
+            return serversVerify;
         }
-        public static bool Exists(string path)
+        public static bool IsServerUp(string server, int port, int timeout)
         {
+            bool isUp = false;
             try
             {
-                bool found = false;
-                if (DirectoryEntry.Exists(path))
+                using (TcpClient tcp = new TcpClient())
                 {
-                    found = true;
+                    IPAddress address;
+                    if (IPAddress.TryParse(server, out address))
+                    {
+                        IAsyncResult ar = tcp.BeginConnect(address, port, null, null);
+                        WaitHandle wh = ar.AsyncWaitHandle;
+
+                        try
+                        {
+                            if (!wh.WaitOne(TimeSpan.FromMilliseconds(timeout), false))
+                            {
+                                tcp.EndConnect(ar);
+                                tcp.Close();
+                                throw new SocketException();
+                            }
+
+                            isUp = true;
+                            tcp.EndConnect(ar);
+                        }
+                        finally
+                        {
+                            wh.Close();
+                        }
+                    }
                 }
-                return found;
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
-                if (e.Message.Equals("The user name or password is incorrect."))
-                {
-                    return true;
-                }
-                return false;
+                isUp = false;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
+            return isUp;
         }
+
     }
 }
+

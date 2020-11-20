@@ -21,11 +21,8 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = serverRepo.GetPathByDN(orgUnit.PathDomain);
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = orgUnit.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("ou=" + orgUnit.SamAccountName);
                 SearchResult result = search.FindOne();
@@ -66,14 +63,13 @@ namespace AgentNetCore.Context
             ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
             return FindAll(config.GetConfiguration("DefaultDomain"));
         }
-        public List<OrganizationalUnit> FindAll(string domain)
+        public List<OrganizationalUnit> FindAll(string dn)
         {
             try
             {
-                CredentialRepository connect = new CredentialRepository(_mySQLContext);
-                connect.Domain = domain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), connect.User, connect.Pass);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<OrganizationalUnit> orgList = new List<OrganizationalUnit>();
                 search.Filter = "(objectCategory=organizationalUnit)";
@@ -103,15 +99,15 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        private OrganizationalUnit FindOne(string domain, string campo, string valor)
+        private OrganizationalUnit FindOne(string dn, string campo, string valor)
         {
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
                 ServerRepository sr = new ServerRepository(_mySQLContext);
                 OrganizationalUnit organizationalUnit = new OrganizationalUnit();
-                credential.Domain = domain;
-                DirectoryEntry dirEntry = new DirectoryEntry("LDAP://192.168.0.99:389/dc=marveldomain,dc=local", credential.User, credential.Pass);
+                credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
                 search.SearchScope = SearchScope.Subtree;
@@ -147,11 +143,8 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = serverRepo.GetPathByDN(orgUnit.PathDomain);
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = orgUnit.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("ou=" + orgUnit.SamAccountName);
                 SearchResult result = search.FindOne();
@@ -168,7 +161,7 @@ namespace AgentNetCore.Context
                     newOrganizationalUnit.CommitChanges();
                     dirEntry.Close();
                     newOrganizationalUnit.Close();
-                    return FindOne(domain, "ou", orgUnit.SamAccountName);
+                    return FindOne(orgUnit.DistinguishedName, "ou", orgUnit.SamAccountName);
                 }
                 else
                 {
@@ -186,12 +179,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(orgUnit.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = orgUnit.PathDomain;
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = orgUnit.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("distinguishedname=" + orgUnit.DistinguishedName);
                 DirectoryEntry orgUnitFind = (search.FindOne()).GetDirectoryEntry();
@@ -328,7 +318,6 @@ namespace AgentNetCore.Context
                                 break;
                             case "adspath":
                                 organizationalUnit.PathDomain = myCollection.ToString();
-                                organizationalUnit.Domain = sr.ConvertToDomain(myCollection.ToString());
                                 break;
                             case "l":
                                 organizationalUnit.City = myCollection.ToString();

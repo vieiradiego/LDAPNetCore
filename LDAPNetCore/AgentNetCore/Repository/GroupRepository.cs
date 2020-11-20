@@ -22,11 +22,8 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(group.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = serverRepo.GetPathByDN(group.PathDomain);
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = group.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("samaccountname=" + group.SamAccountName);
                 SearchResult result = search.FindOne();
@@ -44,7 +41,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne(domain, "SamAccountName", group.SamAccountName);
+                    return FindOne(group.DistinguishedName, "SamAccountName", group.SamAccountName);
                 }
                 else
                 {
@@ -69,14 +66,13 @@ namespace AgentNetCore.Context
             return FindAll(config.GetConfiguration("DefaultDomain"));
         }
 
-        public List<Group> FindAll(string domain)
+        public List<Group> FindAll(string dn)
         {
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.Domain = domain;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), credential.User, credential.Pass);
+                credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<Group> groupList = new List<Group>();
                 search.Filter = "(&(objectClass=group))";
@@ -99,9 +95,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);//group.PathDomain, ObjectApplication.Category.group);
-                credential.Domain = group.PathDomain;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = group.DistinguishedName;
+                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, credential.Path);
                 GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
                 groupPrincipal.SamAccountName = group.SamAccountName;
                 groupPrincipal.Name = group.Name;
@@ -120,11 +116,8 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(group.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = serverRepo.GetPathByDN(group.PathDomain);
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = group.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("samaccountname=" + group.SamAccountName);
                 SearchResult result = search.FindOne();
@@ -142,7 +135,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne(domain, "SamAccountName", group.SamAccountName);
+                    return FindOne(group.DistinguishedName, "SamAccountName", group.SamAccountName);
                 }
                 else
                 {
@@ -161,12 +154,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ServerRepository serverRepo = new ServerRepository(_mySQLContext);
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                string domain = serverRepo.ConvertToDomain(group.PathDomain);
-                credential.Domain = domain;
-                string pathDomain = group.PathDomain;
-                DirectoryEntry dirEntry = new DirectoryEntry(pathDomain, credential.User, credential.Pass);
+                credential.DN = group.DistinguishedName;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("SamAccountName=" + group.SamAccountName);
                 DirectoryEntry groupFind = (search.FindOne()).GetDirectoryEntry();
@@ -186,8 +176,8 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.Domain = group.PathDomain;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, group.PathDomain);
+                credential.DN = group.DistinguishedName;
+                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, credential.Path);
                 GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
                 groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.EmailAddress);
                 if (groupPrincipal != null)
@@ -218,15 +208,14 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        private Group FindOne(string domain, string campo, string valor)
+        private Group FindOne(string dn, string campo, string valor)
         {
             try
             {
-
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
-                credential.Domain = domain;
+                credential.DN = dn;
                 ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(sr.GetPathByServer(domain), credential.User, credential.Pass);
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 Group group = new Group();
                 search.Filter = "(" + campo + "=" + valor + ")";

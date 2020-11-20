@@ -38,31 +38,36 @@ namespace AgentNetCore.Service
             return _converter.ParseList(ldapUser.FindAll());
         }
 
-        public UserVO FindByName(string domain, string name)
+        public UserVO FindByEmail(string dn, string email)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return _converter.Parse(ldapUser.FindByName(domain, name));
+            return _converter.Parse(ldapUser.FindByEmail(dn, email));
         }
 
-        public UserVO FindByEmail(string domain, string email)
+        public UserVO FindBySamName(string dn, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return _converter.Parse(ldapUser.FindByEmail(domain, email));
+
+            return _converter.Parse(ldapUser.FindBySamName(dn, samName));
         }
 
-        public UserVO FindByEmail(string email)
+        public UserVO FindByName(string dn, string firstName, string lastName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            return _converter.Parse(ldapUser.FindByEmail(email));
+            return _converter.Parse(ldapUser.FindByName(dn, firstName + " " + lastName));
         }
 
-        public UserVO FindBySamName(string domain, string samName)
+        public UserVO FindByFirstName(string dn, string firstName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            
-            return _converter.Parse(ldapUser.FindBySamName(domain, samName));
+            return _converter.Parse(ldapUser.FindByFirstName(dn, firstName));
         }
 
+        public UserVO FindByLastName(string dn, string lastName)
+        {
+            UserRepository ldapUser = new UserRepository(_mySQLContext);
+            return _converter.Parse(ldapUser.FindByLastName(dn, lastName));
+        }
         public UserVO Update(UserVO user)
         {
             try
@@ -94,7 +99,7 @@ namespace AgentNetCore.Service
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
             User result = new User();
-            result = ldapUser.FindByEmail(domain, samName);
+            result = ldapUser.FindBySamName(domain, samName);
             try
             {
                 if (result != null)
@@ -107,7 +112,5 @@ namespace AgentNetCore.Service
                 throw ex;
             }
         }
-
-        
     }
 }
