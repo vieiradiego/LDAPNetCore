@@ -48,6 +48,7 @@ namespace AgentNetCore.Data.Converters
 
         public List<GroupVO> ParseList(List<Group> origin)
         {
+            if (origin == null) return null;
             return origin.Select(item => Parse(item)).ToList();
         }
     }

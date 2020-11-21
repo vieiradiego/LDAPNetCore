@@ -44,7 +44,7 @@ namespace AgentNetCore.Context
                     newUser.Properties["employeeID"].Value = user.EmployeeID;
                     newUser.Properties["l"].Value = user.City;
                     newUser.Properties["mail"].Value = user.EmailAddress;
-                    newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.DistinguishedName;
+                    newUser.Properties["manager"].Value = user.Manager;
                     newUser.Properties["mobile"].Value = user.MobilePhone;
                     newUser.Properties["name"].Value = user.Name;
                     newUser.Properties["o"].Value = user.Departament;
@@ -116,7 +116,9 @@ namespace AgentNetCore.Context
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
-                return GetResult(credential, search.FindOne());
+                var user = GetResult(credential, search.FindOne());
+                if ((user.DistinguishedName == null) && (user.SamAccountName == null)) return null;
+                return user;
             }
             catch (Exception e)
             {
@@ -207,6 +209,13 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
+        }
+
+        public List<User> FindByDn(string dn)
+        {
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = dn;
+            return FindAll(credential);
         }
         public User Update(User user)
         {
@@ -474,7 +483,8 @@ namespace AgentNetCore.Context
                                 break;
                             case "memberof":
                                 user.MemberOf = new List<Group>();
-                                user.MemberOf.Add(group.FindByDN(credential, myCollection.ToString()));
+                                credential.DN = myCollection.ToString();
+                                user.MemberOf.Add(group.FindByDN(credential, credential.DN));
                                 break;
                         }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));

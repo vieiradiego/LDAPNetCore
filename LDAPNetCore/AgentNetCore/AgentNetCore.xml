@@ -190,14 +190,15 @@
             <param name="domain"></param>
             <param name="samName"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.UsersController.Get">
+        <member name="M:AgentNetCore.Controllers.UsersController.Get(System.String)">
             <summary>
-            RECUPERAR todos os Usuários
+            RECUPERAR os dados de todos os Usuários. 
             </summary>
             <remarks>
             Retorna uma lista de objetos no formato UserVO
             </remarks>
             <returns>O retorno desse serviço é uma lista de UserVO </returns>
+            <param name="dn"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.UsersController.Find(System.String,System.String,System.String,System.String,System.String)">
             <summary>

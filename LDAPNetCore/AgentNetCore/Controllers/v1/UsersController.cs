@@ -28,6 +28,7 @@ namespace AgentNetCore.Controllers
         /// Retorna uma lista de objetos no formato UserVO
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de UserVO </returns>
+        /// <param name="dn"></param>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<UserVO>))]
         [SwaggerResponse(204)]
@@ -35,9 +36,18 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string dn)
         {
-            return Ok(_userService.FindAll());
+            if (!string.IsNullOrWhiteSpace(dn))
+            {
+                var user = _userService.FindByDn(dn);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else
+            {
+                return Ok(_userService.FindAll());
+            }
         }
 
         /// <summary>

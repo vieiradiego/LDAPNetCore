@@ -92,8 +92,6 @@ namespace AgentNetCore.Context
             }
             return domain;
         }
-
-        
         private string DnToPath(string dn)
         {
             ServerRepository sr = new ServerRepository(_mySQLContext);
@@ -102,17 +100,20 @@ namespace AgentNetCore.Context
         }
         private void SetCredential()
         {
-            try
+            if ((_User == null) && (_Pass == null))
             {
-                Credential c = new Credential();
-                c = GetCredentials(_Domain);
-                _User = c.User;
-                _Pass = c.Pass;
-            }
-            catch (Exception)
-            {
+                try
+                {
+                    Credential c = new Credential();
+                    c = GetCredentials(_Domain);
+                    _User = c.User;
+                    _Pass = c.Pass;
+                }
+                catch (Exception)
+                {
 
-                throw;
+                    throw;
+                }
             }
         }
         private Credential GetCredentials(string domain)

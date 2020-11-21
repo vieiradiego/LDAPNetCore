@@ -68,6 +68,12 @@ namespace AgentNetCore.Service
             UserRepository ldapUser = new UserRepository(_mySQLContext);
             return _converter.Parse(ldapUser.FindByLastName(dn, lastName));
         }
+
+        public List<UserVO> FindByDn(string dn)
+        {
+            UserRepository ldapUser = new UserRepository(_mySQLContext);
+            return _converter.ParseList(ldapUser.FindByDn(dn));
+        }
         public UserVO Update(UserVO user)
         {
             try

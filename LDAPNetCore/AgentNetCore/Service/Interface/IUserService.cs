@@ -9,6 +9,7 @@ namespace AgentNetCore.Service
         UserVO Create(UserVO user);
         
         List<UserVO> FindAll();
+        List<UserVO> FindByDn(string dn);
         UserVO FindByEmail(string dn, string email);
         UserVO FindBySamName(string dn, string samName);
         UserVO FindByName(string dn, string firstName,string lastName);
