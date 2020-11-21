@@ -5,15 +5,16 @@ Sistemas de Informação
 
 Diego Moreira Vieira
 
-Implementação de integração com o servidor de domínio através de API RESTful
+IMPLEMENTAÇÃO DE INTEGRAÇÃO COM O SERVIDOR DE DOMÍNIO ATRAVÉS DE API RESTful PARA AS EMPRESAS RANDON
 
-Trabalho de Conclusão de Curso apresentado como parte dos requisitos para a obtenção do título de Bacharel em Sistemas de Informação da Universidade de Caxias do Sul.
-Orientador: Prof. Msc. Alexandre Erasmo Krohn Nascimento
+Trabalho de Conclusão de Curso apresentado como requisito parcial à obtenção do título de Bacharel em Sistemas na Área do Conhecimento de Ciências Exatas e Engenharia da Universidade de Caxias do Sul.
+
+Orientador: Prof. Me. Alexandre Erasmo Krohn Nascimento
 
 Banca Examinadora
 
 _________________________________________________
-Prof. Msc. Alexandre Erasmo Krohn Nascimento
+Prof. Me. Alexandre Erasmo Krohn Nascimento
 Universidade de Caxias do Sul – UCS
 
 _________________________________________________
@@ -21,11 +22,8 @@ Prof. Dr. André Gustavo Adami
 Universidade de Caxias do Sul – UCS
 
 _________________________________________________
-Prof. Daniel Antônio Faccin 
+Prof. Esp. Daniel Antônio Faccin 
 Universidade de Caxias do Sul – UCS
-
-
-Dedico este trabalho a minha esposa Lenir Frey, por estar ao meu lado de forma incondicional em todos os momentos da minha vida. Sem você isso não seria possível, e não estaria aqui comemorando nossa vitória dessa jornada que tivemos grandes desafios. Só nós sabemos o que passamos e superamos para estarmos aqui, felizes e comemorando essa conquista. Iremos seguir nossa vida e construir novas vitorias e conquistas juntos.
 
 
 AGRADECIMENTOS
