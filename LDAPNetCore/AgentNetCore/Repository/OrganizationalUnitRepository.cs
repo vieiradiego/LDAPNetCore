@@ -58,17 +58,17 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public List<OrganizationalUnit> FindAll()
+        public List<OrganizationalUnit> FindAll(string domain)
         {
             ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
-            return FindAll(config.GetConfiguration("DefaultDomain"));
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = config.GetConfiguration("DefaultDomain");
+            return FindAll(credential);
         }
-        public List<OrganizationalUnit> FindAll(string dn)
+        private List<OrganizationalUnit> FindAll(CredentialRepository credential)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<OrganizationalUnit> orgList = new List<OrganizationalUnit>();

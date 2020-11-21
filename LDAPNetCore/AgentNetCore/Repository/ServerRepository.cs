@@ -2,6 +2,7 @@
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.DirectoryServices;
 using System.Linq;
 using System.Net;
@@ -27,62 +28,50 @@ namespace AgentNetCore.Repository
         {
             List<Server> serversVerify = new List<Server>();
             List<Server> servers = FindServers(domain);
-            for (int i = 0; i < servers.Count; i++)
-            {
-                try
-                {
-                    if (IsServerUp(servers[i].Address, Int32.Parse(servers[i].Port),3))
-                    {
-                        serversVerify.Add(servers[i]);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                }
-            }
-            return serversVerify;
-        }
-        public static bool IsServerUp(string server, int port, int timeout)
-        {
-            bool isUp = false;
             try
             {
-                using (TcpClient tcp = new TcpClient())
+                for (int i = 0; i < servers.Count; i++)
                 {
-                    IPAddress address;
-                    if (IPAddress.TryParse(server, out address))
+
+                    if (IsServerUp(servers[i].Address, Int32.Parse(servers[i].Port), 3))
                     {
-                        IAsyncResult ar = tcp.BeginConnect(address, port, null, null);
-                        WaitHandle wh = ar.AsyncWaitHandle;
-
-                        try
-                        {
-                            if (!wh.WaitOne(TimeSpan.FromMilliseconds(timeout), false))
-                            {
-                                tcp.EndConnect(ar);
-                                tcp.Close();
-                                throw new SocketException();
-                            }
-
-                            isUp = true;
-                            tcp.EndConnect(ar);
-                        }
-                        finally
-                        {
-                            wh.Close();
-                        }
+                        serversVerify.Add(servers[i]);
+                        break;
                     }
                 }
             }
-            catch (SocketException e)
+            catch (Exception e)
             {
-                isUp = false;
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
-            return isUp;
+
+            return serversVerify;
         }
 
+        public static bool IsServerUp(string server, int port, int timeout)
+        {
+            bool success = false;
+            try
+            {
+                var stopWatch = new Stopwatch();
+                stopWatch.Start();
+                var client = new TcpClient();
+                var result = client.BeginConnect(server, port, null, null);
+                success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                Console.WriteLine(success ? "Connected to " + server + ":" + port : "Failed to connect  to " + server + ":" + port);
+                if (success)
+                {
+                    client.EndConnect(result);
+                }
+                stopWatch.Stop();
+                Console.WriteLine("Time: (ms) " + stopWatch.ElapsedMilliseconds + "|" + server + ":" + port);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+            }
+            return success;
+        }
     }
 }
 

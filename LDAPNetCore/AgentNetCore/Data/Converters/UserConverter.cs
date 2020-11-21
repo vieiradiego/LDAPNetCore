@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 
 namespace AgentNetCore.Data.Converters
 {
+   
     public class UserConverter : IParser<UserVO, User>, IParser<User, UserVO>
     {
+        GroupConverter _groupConverter = new GroupConverter();
         public User Parse(UserVO origin)
         {
             if (origin == null) return null;
@@ -49,7 +51,7 @@ namespace AgentNetCore.Data.Converters
                 SamAccountName = origin.SamAccountName,
                 DistinguishedName = origin.DistinguishedName,
                 DirectReports = origin.DirectReports,
-                MemberOf = origin.MemberOf,
+                MemberOf = _groupConverter.ParseList(origin.MemberOf),
                 UserAccountControl = origin.UserAccountControl,
             };
         }
@@ -93,7 +95,7 @@ namespace AgentNetCore.Data.Converters
                 SamAccountName = origin.SamAccountName,
                 DistinguishedName = origin.DistinguishedName,
                 DirectReports = origin.DirectReports,
-                MemberOf = origin.MemberOf,
+                MemberOf = _groupConverter.ParseList(origin.MemberOf),
                 UserAccountControl = origin.UserAccountControl,
             };
         }

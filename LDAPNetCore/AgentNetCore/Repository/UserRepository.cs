@@ -40,11 +40,11 @@ namespace AgentNetCore.Context
                     newUser.Properties["department"].Value = user.Departament;
                     newUser.Properties["description"].Value = user.Description;
                     newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
-                    newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.PathDomain;
+                    newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.DistinguishedName;
                     newUser.Properties["employeeID"].Value = user.EmployeeID;
                     newUser.Properties["l"].Value = user.City;
                     newUser.Properties["mail"].Value = user.EmailAddress;
-                    newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain; //"CN=Ghost Rider,CN=Users,DC=MarvelDomain,DC=local";//CN=Ghost Rider,OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
+                    newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.DistinguishedName;
                     newUser.Properties["mobile"].Value = user.MobilePhone;
                     newUser.Properties["name"].Value = user.Name;
                     newUser.Properties["o"].Value = user.Departament;
@@ -61,7 +61,7 @@ namespace AgentNetCore.Context
                     newUser.CommitChanges();
                     dirEntry.Close();
                     newUser.Close();
-                    return FindBySamName(user.DistinguishedName, user.SamAccountName);
+                    return FindBySamName(credential, user.SamAccountName);
                 }
                 else
                 {
@@ -79,44 +79,17 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User Create2(User user)
-        {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);//user.PathDomain, ObjectApplication.Category.user);
-                credential.DN= user.DistinguishedName;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, user.SamAccountName, credential.Path);
-                UserPrincipal userPrincipal = new UserPrincipal(pc);
-                userPrincipal.SamAccountName = user.SamAccountName;
-                userPrincipal.GivenName = user.FirstName;
-                userPrincipal.MiddleName = user.Name;
-                userPrincipal.Surname = user.Name;
-                userPrincipal.Description = user.Description;
-                userPrincipal.DisplayName = user.DisplayName;
-                userPrincipal.EmployeeId = user.EmployeeID;
-                userPrincipal.PasswordNotRequired = user.PasswordNotRequired;
-                userPrincipal.AccountExpirationDate = user.AccountExpirationDate;
-                userPrincipal.Enabled = user.Enabled;
-                userPrincipal.Save();
-                user.DistinguishedName = userPrincipal.DistinguishedName;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-            return user;
-        }
         public List<User> FindAll()
         {
             ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
-            return FindAll(config.GetConfiguration("DefaultDN"));
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = config.GetConfiguration("DefaultDN");
+            return FindAll(credential);
         }
-        private List<User> FindAll(string dn)
+        private List<User> FindAll(CredentialRepository credential)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<User> userList = new List<User>();
@@ -125,7 +98,7 @@ namespace AgentNetCore.Context
                 List<SearchResult> results = new List<SearchResult>();
                 foreach (SearchResult userResult in usersResult)
                 {
-                    userList.Add(GetResult(userResult));
+                    userList.Add(GetResult(credential, userResult));
                 }
                 return userList;
             }
@@ -136,39 +109,14 @@ namespace AgentNetCore.Context
             }
 
         }
-        private User FindOne(string dn, string campo, string valor, string[] fields)
+        private User FindOne(CredentialRepository credential, string campo, string valor)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
-                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                User user = new User();
-                search.Filter = "(" + campo + "=" + valor + ")";
-                foreach (string atribute in fields)
-                {
-                    search.PropertiesToLoad.Add(atribute);
-                }
-                user = GetResult(search.FindOne());
-                return user;
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
-        private User FindOne(string dn, string campo, string valor)
-        {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
-                return GetResult(search.FindOne());
+                return GetResult(credential, search.FindOne());
             }
             catch (Exception e)
             {
@@ -181,7 +129,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                return FindOne(dn, "mail", email);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "mail", email);
             }
             catch (Exception e)
             {
@@ -189,11 +139,11 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User FindBySamName(string pathDomain, string samName)
+        public User FindBySamName(CredentialRepository credential, string samName)
         {
             try
             {
-                return FindOne(pathDomain, "samAccountName", samName);
+                return FindOne(credential, "samAccountName", samName);
             }
             catch (Exception e)
             {
@@ -201,11 +151,27 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User FindByName(string pathDomain, string name)
+        public User FindBySamName(string dn, string samName)
         {
             try
             {
-                return FindOne(pathDomain, "name", name);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "samAccountName", samName);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public User FindByName(string dn, string name)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "name", name);
             }
             catch (Exception e)
             {
@@ -217,7 +183,9 @@ namespace AgentNetCore.Context
         {
             try
             {
-                return FindOne(dn, "givenName", firstName);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "givenName", firstName);
             }
             catch (Exception e)
             {
@@ -228,12 +196,11 @@ namespace AgentNetCore.Context
         }
         public User FindByLastName(string dn, string lastName)
         {
-            // INPUT (PathDomain, SamAccountName) 
-            // OUTPU (User)
-
             try
             {
-                return FindOne(dn, "sn", lastName);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "sn", lastName);
             }
             catch (Exception e)
             {
@@ -273,7 +240,7 @@ namespace AgentNetCore.Context
                     newUser.Properties["streetAddress"].Value = user.StreetAddress;
                     newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
                     newUser.Properties["title"].Value = user.Title;
-                    //newUser.Properties["manager"].Value = "CN=" + user.Manager + "," + user.PathDomain;
+                    newUser.Properties["manager"].Value = user.Manager;
                     newUser.CommitChanges();
                     newUser.Rename("cn=" + user.Name);
                     newUser.CommitChanges();
@@ -281,7 +248,7 @@ namespace AgentNetCore.Context
                     newUser.CommitChanges();
                     dirEntry.Close();
                     newUser.Close();
-                    return FindBySamName(user.DistinguishedName, user.SamAccountName);
+                    return FindBySamName(credential, user.SamAccountName);
                 }
                 else
                 {
@@ -317,7 +284,7 @@ namespace AgentNetCore.Context
                     newUser.CommitChanges();
                     dirEntry.Close();
                     newUser.Close();
-                    return FindBySamName(dn, samName);
+                    return FindBySamName(credential, samName);
                 }
                 else
                 {
@@ -352,7 +319,7 @@ namespace AgentNetCore.Context
                     newUser.CommitChanges();
                     dirEntry.Close();
                     newUser.Close();
-                    return FindBySamName(dn, samName);
+                    return FindBySamName(credential, samName);
                 }
                 else
                 {
@@ -370,12 +337,10 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public void Delete(User user)
+        public void Delete(CredentialRepository credential, User user)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = user.DistinguishedName;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("SamAccountName=" + user.SamAccountName);
@@ -417,16 +382,15 @@ namespace AgentNetCore.Context
         #endregion
 
         #region GET
-        private User GetProperties(User user, ResultPropertyCollection fields)
+        private User GetProperties(CredentialRepository credential, User user, ResultPropertyCollection fields)
         {
             try
             {
-                ServerRepository sr = new ServerRepository(_mySQLContext);
+                GroupRepository group = new GroupRepository(_mySQLContext);
                 foreach (String ldapField in fields.PropertyNames)
                 {
                     foreach (Object myCollection in fields[ldapField])
                     {
-
                         switch (ldapField)
                         {
                             case "samaccountname":
@@ -508,6 +472,10 @@ namespace AgentNetCore.Context
                             case "userprincipalname":
                                 user.EmailAddress = myCollection.ToString();
                                 break;
+                            case "memberof":
+                                user.MemberOf = new List<Group>();
+                                user.MemberOf.Add(group.FindByDN(credential, myCollection.ToString()));
+                                break;
                         }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
@@ -520,14 +488,14 @@ namespace AgentNetCore.Context
             }
             return user;
         }
-        private User GetResult(SearchResult result)
+        private User GetResult(CredentialRepository credential, SearchResult result)
         {
             User user = new User();
             try
             {
                 if (result != null)
                 {
-                    return GetProperties(user, result.Properties);
+                    return GetProperties(credential, user, result.Properties);
                 }
                 else
                 {
@@ -541,7 +509,7 @@ namespace AgentNetCore.Context
             }
             return user;
         }
-        private List<User> GetResultList(SearchResult result)
+        private List<User> GetResultList(CredentialRepository credential, SearchResult result)
         {
             List<User> userList = new List<User>();
             if (result != null)
@@ -552,7 +520,7 @@ namespace AgentNetCore.Context
                 {
                     User user = new User();
 
-                    userList.Add(GetProperties(user, fields));
+                    userList.Add(GetProperties(credential, user, fields));
                 }
 
                 return userList;
@@ -621,7 +589,7 @@ namespace AgentNetCore.Context
                 }
                 foreach (var user in users)
                 {
-                    refreshUsers.Add(FindBySamName(user.DistinguishedName, user.PathDomain));
+                    refreshUsers.Add(FindBySamName(user.DistinguishedName, user.SamAccountName));
                 }
                 return refreshUsers;
             }
@@ -636,9 +604,11 @@ namespace AgentNetCore.Context
         {
             try
             {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = user.DistinguishedName;
                 AddUserToGroup(user, newGroup);
                 RemoveUserToGroup(user, oldGroup);
-                return FindByEmail(user.EmailAddress, user.PathDomain);
+                return FindBySamName(credential, user.SamAccountName);
             }
             catch (Exception e)
             {
@@ -689,7 +659,7 @@ namespace AgentNetCore.Context
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN= dn;
+                credential.DN = dn;
                 PrincipalContext pc = new PrincipalContext(ContextType.Domain, credential.User, credential.Pass);
                 UserPrincipal userPrincipal = new UserPrincipal(pc);
                 if (userPrincipal != null)

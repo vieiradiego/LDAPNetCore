@@ -41,7 +41,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne(group.DistinguishedName, "SamAccountName", group.SamAccountName);
+                    return FindOne(credential, "SamAccountName", group.SamAccountName);
                 }
                 else
                 {
@@ -91,6 +91,97 @@ namespace AgentNetCore.Context
 
         }
 
+        private Group FindOne(CredentialRepository credential, string campo, string valor)
+        {
+            try
+            {
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                Group group = new Group();
+                search.Filter = "(" + campo + "=" + valor + ")";
+                group = GetResult(search.FindOne());
+                return group;
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+
+        }
+
+        public Group FindByEmail(string dn, string email)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "mail", email);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
+        public Group FindBySamName(CredentialRepository credential, string samName)
+        {
+            try
+            {
+                return FindOne(credential, "samAccountName", samName);
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
+        public Group FindBySamName(string dn, string samName)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "samAccountName", samName);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
+        public Group FindByDN(string dn)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "distinguishedName", dn);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
+        public Group FindByDN(CredentialRepository credential, string dn)
+        {
+            try
+            {
+                return FindOne(credential, "distinguishedName", dn);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
         public Group Create2(Group group)
         {
             try
@@ -135,7 +226,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne(group.DistinguishedName, "SamAccountName", group.SamAccountName);
+                    return FindOne(credential, "SamAccountName", group.SamAccountName);
                 }
                 else
                 {
@@ -196,51 +287,7 @@ namespace AgentNetCore.Context
             }
         }
 
-        public Group FindBySamName(string domain, string samName)
-        {
-            try
-            {
-                return FindOne(domain, "samAccountName", samName);
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
-        private Group FindOne(string dn, string campo, string valor)
-        {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);//domain, ObjectApplication.Category.user);
-                credential.DN = dn;
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                Group group = new Group();
-                search.Filter = "(" + campo + "=" + valor + ")";
-                group = GetResult(search.FindOne());
-                return group;
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-
-        }
-        public Group FindByEmail(string domain, string email)
-        {
-            try
-            {
-                return FindOne(domain, "mail", email);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
+        
 
         #endregion
 

@@ -37,7 +37,7 @@ namespace AgentNetCore.Data.VO
         [DataMember(Order = 32)] public string AccountPassword { get; set; }
         [DataMember(Order = 33)] public DateTime AccountExpirationDate { get; set; }
         [DataMember(Order = 34)] public string DirectReports { get; set; }
-        [DataMember(Order = 35)] public string MemberOf { get; set; }
+        [DataMember(Order = 35)] public List<GroupVO> MemberOf { get; set; }
         [DataMember(Order = 36)] public string UserAccountControl { get; set; }
     }
 }

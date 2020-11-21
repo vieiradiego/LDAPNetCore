@@ -22,7 +22,7 @@ namespace AgentNetCore.Controllers
             _userService = userService;
         }
         /// <summary>
-        /// RECUPERAR todos os Usuários
+        /// RECUPERAR os dados de todos os Usuários. 
         /// </summary>
         /// <remarks>
         /// Retorna uma lista de objetos no formato UserVO
@@ -160,8 +160,12 @@ namespace AgentNetCore.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult Delete([FromQuery] string dn, [FromQuery] string samname)
         {
-            _userService.Delete(dn, samname);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samname))
+            {
+                _userService.Delete(dn, samname);
+                return NoContent();
+            }
+            return BadRequest();
         }
         /// <summary>
         /// RECUPERAR os Grupos de um Usuário

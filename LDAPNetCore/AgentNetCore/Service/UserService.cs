@@ -95,16 +95,18 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string domain, string samName)
+        public void Delete(string dn, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
             User result = new User();
-            result = ldapUser.FindBySamName(domain, samName);
+            credential.DN = dn;
+            result = ldapUser.FindBySamName(credential, samName);
             try
             {
                 if (result != null)
                 {
-                    ldapUser.Delete(result);
+                    ldapUser.Delete(credential, result);
                 }
             }
             catch (Exception ex)

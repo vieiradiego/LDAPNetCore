@@ -19,6 +19,7 @@ namespace AgentNetCore.Context
         private string _Path;
         private string _Domain;
         private string _DN;
+        private string _CN;
         private string _User;
         private string _Pass;
         public string Domain { get { return _Domain; } }
@@ -31,9 +32,6 @@ namespace AgentNetCore.Context
         {
             _mySQLContext = mySQLContext;
         }
-
-
-
         public string DN
         {
             get
@@ -47,39 +45,33 @@ namespace AgentNetCore.Context
              // Procurar no banco as credenciais disponíveis para o dominio
              // Procurar os servidores disponíveis
              // Popular os campos: user, pass, dn, path LDAP
-                SetDomain(value);
+                SetDomainByDN(value);
+                SetDN(value);
+                SetPathByDN(value);
                 SetCredential();
-                SetPath(value);
             }
         }
-        private void SetDomain(string value)
+
+        
+
+        private void SetDN(string value)
+        {
+            _DN = value;
+        }
+        
+
+        private void SetDomainByDN(string value)
         {
             _Domain = DnToDomain(value);
         }
-        private void SetCredential()
-        {
-            try
-            {
-                Credential c = new Credential();
-                c = GetCredentials(_Domain);
-                _User = c.User;
-                _Pass = c.Pass;
-            }
-            catch (Exception)
-            {
 
-                throw;
-            }
-        }
-        private Credential GetCredentials(string domain)
-        {
-            return _mySQLContext.Credentials.FirstOrDefault(p => p.Domain.Equals(domain));
-        }
-        private void SetPath(string value)
+        
+        private void SetPathByDN(string value)
         {
             _Path = DnToPath(value);
         }
 
+        
         private string DnToDomain(string dn)
         {
             dn = dn.ToLower();
@@ -100,13 +92,33 @@ namespace AgentNetCore.Context
             }
             return domain;
         }
+
+        
         private string DnToPath(string dn)
         {
             ServerRepository sr = new ServerRepository(_mySQLContext);
             List<Server> servers = sr.GetServers(_Domain);
             return "LDAP://" + servers[0].Address + ":" + servers[0].Port + "/" + dn;
         }
+        private void SetCredential()
+        {
+            try
+            {
+                Credential c = new Credential();
+                c = GetCredentials(_Domain);
+                _User = c.User;
+                _Pass = c.Pass;
+            }
+            catch (Exception)
+            {
 
+                throw;
+            }
+        }
+        private Credential GetCredentials(string domain)
+        {
+            return _mySQLContext.Credentials.FirstOrDefault(p => p.Domain.Equals(domain));
+        }
 
         //public string GetPathByServer(string domain)
         //{// INPUT  marveldomain.local
@@ -123,24 +135,12 @@ namespace AgentNetCore.Context
         //    return null;
         //}
 
-        //private string SetPath(Server server)
-        //{
-        //    return "LDAP://" + server.Address + ":" + server.Port + "/" + server.Container;
-        //}
+        
         //public string GetPathByDN(string distinguishedName)
         //{// Input  (distinguishedName) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
         // // Output (LDAP Path) LDAP://SERVER:PORT/OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
 
-        //    List<Server> servers = GetServers(ConvertToDomain(distinguishedName));
-        //    foreach (var server in servers)
-        //    {
-        //        string path = "LDAP://" + server.Address + ":" + server.Port + "/" + distinguishedName;
-        //        if (Exists(path))
-        //        {
-        //            return path;
-        //        }
-        //    }
-        //    return null;
+        //    
         //}
         //public string ConvertToDomain(string value)
         //{// Input  (distinguishedName, Path, email) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
