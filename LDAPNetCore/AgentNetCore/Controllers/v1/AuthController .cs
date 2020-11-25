@@ -86,7 +86,7 @@ namespace AgentNetCore.Controllers
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="userName"></param>
-        [HttpGet]
+        [HttpPost]
         [Route("revoke")]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -96,7 +96,7 @@ namespace AgentNetCore.Controllers
         {
             var username = User.Identity.Name;
             var result = _loginBusiness.RevokeToken(username);
-            if (!result) return BadRequest("Ivalid client request");
+            if (!result) return BadRequest("Invalid client request");
             return NoContent();
         }
     }
