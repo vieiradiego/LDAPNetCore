@@ -3,6 +3,7 @@ using AgentNetCore.Data.VO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace AgentNetCore.Controllers
 {
@@ -19,7 +20,6 @@ namespace AgentNetCore.Controllers
         {
             _loginBusiness = loginBusiness;
         }
-
         /// <summary>
         /// AUTENTICAR um Cliente.
         /// </summary>
@@ -30,13 +30,24 @@ namespace AgentNetCore.Controllers
         /// com os dados necessários para acessar a API REST</returns>
         /// <param name="client"></param>
         [HttpPost]
+        [SwaggerResponse((200), Type = typeof(TokenVO))]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [SwaggerResponse(405)]
         [Route("signin")]
         public IActionResult Signin([FromBody] ClientVO client)
         {
-            if (client == null) return BadRequest("Ivalid client request");
-            var token = _loginBusiness.ValidateCredentials(client);
-            if (token == null) return Unauthorized();
-            return Ok(token);
+            if (client == null) return BadRequest("Invalid client request");
+            if (!string.IsNullOrWhiteSpace(client.UserName) && !string.IsNullOrWhiteSpace(client.Password))
+            {
+                var token = _loginBusiness.ValidateCredentials(client);
+                if (token == null) return Unauthorized("Unauthorized client request");
+                return Ok(token);
+            }
+            else
+            {
+                return BadRequest("Invalid client request");
+            }
         }
         /// <summary>
         /// ATUALIZAR os dados de acesso de um Cliente.
@@ -45,17 +56,28 @@ namespace AgentNetCore.Controllers
         /// Retorna um objeto no formato TokenVO
         /// </remarks>
         /// <returns>O retorno desse serviço é um determinado TokenVO com os dados necessários para acessar a API REST</returns>
-        /// <param name="token"></param>
+        /// <param name="accessToken"></param>
+        /// <param name="refreshToken"></param>
         [HttpPost]
         [Route("refresh")]
+        [SwaggerResponse((200), Type = typeof(TokenVO))]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [SwaggerResponse(405)]
         public IActionResult Refresh([FromBody] TokenVO token)
         {
-            if (token is null) return BadRequest("Ivalid client request");
-            var tokenVar = _loginBusiness.ValidateCredentials(token);
-            if (tokenVar == null) return BadRequest("Ivalid client request");
-            return Ok(tokenVar);
+            if (token is null) return BadRequest("Invalid client request");
+            if (!string.IsNullOrWhiteSpace(token.AccessToken) && !string.IsNullOrWhiteSpace(token.RefreshToken))
+            {
+                var tokenVar = _loginBusiness.ValidateCredentials(token);
+                if (tokenVar == null) return Unauthorized("Unauthorized client request");
+                return Ok(tokenVar);
+            }
+            else
+            {
+                return BadRequest("Invalid client request");
+            }
         }
-
         /// <summary>
         /// ATUALIZAR os dados de acesso de um Cliente.
         /// </summary>
@@ -63,8 +85,12 @@ namespace AgentNetCore.Controllers
         /// Não há retorno de objetos nesse método
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="userName"></param>
         [HttpGet]
         [Route("revoke")]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(405)]
         [Authorize("Bearer")]
         public IActionResult Revoke()
         {

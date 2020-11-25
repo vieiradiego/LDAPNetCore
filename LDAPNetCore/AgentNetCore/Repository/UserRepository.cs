@@ -398,6 +398,8 @@ namespace AgentNetCore.Context
                 GroupRepository group = new GroupRepository(_mySQLContext);
                 foreach (String ldapField in fields.PropertyNames)
                 {
+                    user.MemberOf = new List<Group>();
+                    
                     foreach (Object myCollection in fields[ldapField])
                     {
                         switch (ldapField)
@@ -479,10 +481,9 @@ namespace AgentNetCore.Context
                                 user.Title = myCollection.ToString();
                                 break;
                             case "userprincipalname":
-                                user.EmailAddress = myCollection.ToString();
+                                user.UserAccountControl = myCollection.ToString();
                                 break;
                             case "memberof":
-                                user.MemberOf = new List<Group>();
                                 credential.DN = myCollection.ToString();
                                 user.MemberOf.Add(group.FindByDN(credential, credential.DN));
                                 break;

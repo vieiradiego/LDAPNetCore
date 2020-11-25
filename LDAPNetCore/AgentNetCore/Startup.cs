@@ -184,14 +184,19 @@ namespace AgentNetCore
             services.AddControllers();
 
             //Dependencias
+            //Scoped - Criado uma vez por escopo de uso
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IOrganizationalUnitService, OrganizationalUnitService>();
             services.AddScoped<IForestService, ForestService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IClientBusiness, ClientBusiness>();
-            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IClientRepository, ClientRepository>();
+
+            //Singleton - Uma única instância para toda a aplicação
+
+            //Transient - Criados toda vez que são solicitados
+            services.AddTransient<ITokenService, TokenService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

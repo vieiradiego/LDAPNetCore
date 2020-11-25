@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Data.VO
 {
@@ -14,6 +13,11 @@ namespace AgentNetCore.Data.VO
             Expiration = expiration;
             AccessToken = accessToken;
             RefreshToken = refreshToken;
+        }
+
+        public TokenVO()
+        {
+            
         }
 
         public bool Authenticated { get; set; }

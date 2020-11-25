@@ -23,7 +23,8 @@
             Retorna um objeto no formato TokenVO
             </remarks>
             <returns>O retorno desse serviço é um determinado TokenVO com os dados necessários para acessar a API REST</returns>
-            <param name="token"></param>
+            <param name="accessToken"></param>
+            <param name="refreshToken"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.AuthController.Revoke">
             <summary>
@@ -33,6 +34,7 @@
             Não há retorno de objetos nesse método
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
+            <param name="userName"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.ForestsController.Get">
             <summary>

@@ -14,6 +14,7 @@ namespace AgentNetCore.Context
         public OrganizationalUnitRepository(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+            CreateMarvelStructure();
         }
         #region CRUD
         public OrganizationalUnit Create(OrganizationalUnit orgUnit)
@@ -239,7 +240,7 @@ namespace AgentNetCore.Context
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Instituto Marvel", Description = "InstitutoMarvel", ProtectDeletion = true, SamAccountName = "InstitutoMarvel", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel Connect", Description = "MarvelConnect", ProtectDeletion = true, SamAccountName = "MarvelConnect", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Disney", Description = "Disney", ProtectDeletion = true, SamAccountName = "Disney", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
-            organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "MasterTech", Description = "MasterTech", ProtectDeletion = true, SamAccountName = "MasterTech", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
+            organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "MarvelTech", Description = "MarvelTech", ProtectDeletion = true, SamAccountName = "MarvelTech", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel", Description = "Marvel", ProtectDeletion = true, SamAccountName = "Marvel", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel Consorcios", Description = "MarvelConsorcios", ProtectDeletion = true, SamAccountName = "MarvelConsorcios", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel Prev", Description = "MarvelPrev", ProtectDeletion = true, SamAccountName = "MarvelPrev", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
@@ -251,7 +252,7 @@ namespace AgentNetCore.Context
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Shared", Description = "Shared", ProtectDeletion = true, SamAccountName = "Shared", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel Saude", Description = "MarvelSaude", ProtectDeletion = true, SamAccountName = "MarvelSaude", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Marvel Heros", Description = "MarvelHeros", ProtectDeletion = true, SamAccountName = "MarvelHeros", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
-            organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Third-Party", Description = "Third-Party", ProtectDeletion = true, SamAccountName = "Castertech", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
+            organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "Third-Party", Description = "Third-Party", ProtectDeletion = true, SamAccountName = "Third-Party", PathDomain = "LDAP://192.168.0.99:389/ou=Marvel Company,dc=marveldomain,dc=local" });
 
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "CPT-SERVER", Description = "Servers of Marvel Company", ProtectDeletion = true, SamAccountName = "CPT-SERVER", PathDomain = "LDAP://192.168.0.99:389/ou=Domain Members,dc=marveldomain,dc=local" });
             organizationalUnitMarvel.Add(new OrganizationalUnit { DisplayName = "HIPER-V", Description = "Virtual Hiper-V Servers of Marvel Company", ProtectDeletion = true, SamAccountName = "HIPER-V", PathDomain = "LDAP://192.168.0.99:389/ou=Domain Members,dc=marveldomain,dc=local" });
