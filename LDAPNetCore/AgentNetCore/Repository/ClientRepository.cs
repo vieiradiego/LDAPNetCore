@@ -18,15 +18,22 @@ namespace AgentNetCore.Context
             _mySQLContext = mySQLContext;
         }
 
+        public Client Create (Client client)
+        {
+            client.SecretKey = ComputeHash(client.SecretKey, new SHA256CryptoServiceProvider());
+            _mySQLContext.Clients.Add(client);
+            return _mySQLContext.Clients.FirstOrDefault(c => ((c.SecretClient == client.SecretClient) && (c.SecretKey == client.SecretKey)));
+        }
+        public Client Update(Client client)
+        {
+            client.SecretKey = ComputeHash(client.SecretKey, new SHA256CryptoServiceProvider());
+            _mySQLContext.Clients.Update(client);
+            return _mySQLContext.Clients.FirstOrDefault(c => ((c.SecretClient == client.SecretClient) && (c.SecretKey == client.SecretKey)));
+        }
+
         public Client ValidateCredentials(ClientVO client)
         {
             var pass = ComputeHash(client.Password, new SHA256CryptoServiceProvider());
-            //Client cC = new Client();
-            //cC.FirstName = "Admin";
-            //cC.SurName = "istrator";
-            //cC.SecretClient = client.UserName;
-            //cC.SecretKey = pass;
-            //_mySQLContext.Clients.Update(cC);
             return _mySQLContext.Clients.FirstOrDefault(c=>((c.SecretClient == client.UserName) && (c.SecretKey == pass)));
         }
 
@@ -43,7 +50,6 @@ namespace AgentNetCore.Context
             _mySQLContext.SaveChanges();
             return true;
         }
-
         public Client RefreshUserInfo(Client client)
         {
             if (!_mySQLContext.Clients.Any(u => u.Id.Equals(client.Id))) return null;

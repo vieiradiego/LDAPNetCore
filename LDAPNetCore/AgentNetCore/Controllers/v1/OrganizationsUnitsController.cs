@@ -29,18 +29,25 @@ namespace AgentNetCore.Controllers
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de OrganizationalUnitVO </returns>
         /// <param name="domain"></param>
-        [HttpGet("domain")]
+        [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<OrganizationalUnitVO>))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get(string domain)
+        public IActionResult Get([FromQuery] string dn)
         {
-            var orgUnit = _orgService.FindAll(domain);
-            if (orgUnit == null) return NotFound();
-            return Ok(orgUnit);
+            if (!string.IsNullOrWhiteSpace(dn))
+            {
+                var orgUnit = _orgService.FindByDn(dn);
+                if (orgUnit == null) return NotFound();
+                return Ok(orgUnit);
+            }
+            else
+            {
+                return Ok(_orgService.FindAll());
+            }
         }
 
         /// <summary>

@@ -1,15 +1,13 @@
-﻿using AgentNetCore.Application;
-using AgentNetCore.Model;
+﻿using AgentNetCore.Model;
 using AgentNetCore.Repository;
+using AgentNetCore.Security.Configuration;
 using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
-using System.DirectoryServices.AccountManagement;
-using System.DirectoryServices.Protocols;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Security.Cryptography;
 using System.Text;
+
 
 namespace AgentNetCore.Context
 {
@@ -19,7 +17,6 @@ namespace AgentNetCore.Context
         private string _Path;
         private string _Domain;
         private string _DN;
-        private string _CN;
         private string _User;
         private string _Pass;
         public string Domain { get { return _Domain; } }
@@ -27,10 +24,42 @@ namespace AgentNetCore.Context
         public string User { get { return _User; } }
         public string Pass { get { return _Pass; } }
 
-
         public CredentialRepository(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
+        }
+
+        public Credential Create(Credential credential)
+        {
+            // Criptografar
+            credential.Pass = Encrypt(credential.Pass);
+            credential.User = Encrypt(credential.User);
+            credential.Domain = Encrypt(credential.Domain);
+            _mySQLContext.Add(credential);
+            _mySQLContext.SaveChanges();
+            Credential teste = _mySQLContext.Credentials.FirstOrDefault(c => ((c.User == credential.User) && (c.Pass == credential.Pass)));
+            return teste;
+        }
+        private bool Exist(long? id)
+        {
+            return _mySQLContext.Credentials.Any(p => p.Id.Equals(id));
+        }
+        public Credential Update(Credential credential)
+        {
+            // Criptografar
+            if (!Exist(credential.Id)) return new Credential();
+            var result = _mySQLContext.Credentials.SingleOrDefault(p => p.Id.Equals(credential.Id));
+            try
+            {
+                credential.Pass = Encrypt(credential.Pass);
+                _mySQLContext.Entry(result).CurrentValues.SetValues(credential);
+                _mySQLContext.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return _mySQLContext.Credentials.FirstOrDefault(c => ((c.User == credential.User) && (c.Pass == credential.Pass)));
         }
         public string DN
         {
@@ -51,27 +80,18 @@ namespace AgentNetCore.Context
                 SetCredential();
             }
         }
-
-        
-
         private void SetDN(string value)
         {
             _DN = value;
         }
-        
-
         private void SetDomainByDN(string value)
         {
             _Domain = DnToDomain(value);
         }
-
-        
         private void SetPathByDN(string value)
         {
             _Path = DnToPath(value);
         }
-
-        
         private string DnToDomain(string dn)
         {
             dn = dn.ToLower();
@@ -94,9 +114,16 @@ namespace AgentNetCore.Context
         }
         private string DnToPath(string dn)
         {
-            ServerRepository sr = new ServerRepository(_mySQLContext);
-            List<Server> servers = sr.GetServers(_Domain);
-            return "LDAP://" + servers[0].Address + ":" + servers[0].Port + "/" + dn;
+            try
+            {
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                List<Server> servers = sr.GetServers(_Domain);
+                return "LDAP://" + servers[0].Address + ":" + servers[0].Port + "/" + dn;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
         }
         private void SetCredential()
         {
@@ -105,142 +132,90 @@ namespace AgentNetCore.Context
                 try
                 {
                     Credential c = new Credential();
-                    c = GetCredentials(_Domain);
-                    _User = c.User;
-                    _Pass = c.Pass;
+                    c = GetCredentials(Encrypt(_Domain));
+                    _User = Decrypt(c.User);
+                    _Pass = Decrypt(c.Pass);
                 }
                 catch (Exception)
                 {
-
                     throw;
                 }
             }
         }
+        private Credential Find(Credential credential)
+        {
+            return _mySQLContext.Credentials.FirstOrDefault(p => p.User.Equals(credential.User));
+        }
         private Credential GetCredentials(string domain)
         {
+            // Descriptografar
+            // Entregar as credenciais corretas
+
             return _mySQLContext.Credentials.FirstOrDefault(p => p.Domain.Equals(domain));
         }
 
-        //public string GetPathByServer(string domain)
-        //{// INPUT  marveldomain.local
-        // // OUTPUT Path
-        //    List<Server> servers = GetServers(domain);
-        //    foreach (var server in servers)
-        //    {
-        //        string path = SetPath(server);
-        //        if (Exists(path))
-        //        {
-        //            return path;
-        //        }
-        //    }
-        //    return null;
-        //}
+        public string Encrypt(string textToEncrypt)
+        {
+            try
+            {
+                string ToReturn = "";
+                string publickey = "publmarv";
+                string secretkey = "privmarv";
+                byte[] secretkeyByte = { };
+                secretkeyByte = System.Text.Encoding.UTF8.GetBytes(secretkey);
+                byte[] publickeybyte = { };
+                publickeybyte = System.Text.Encoding.UTF8.GetBytes(publickey);
+                MemoryStream ms = null;
+                CryptoStream cs = null;
+                byte[] inputbyteArray = System.Text.Encoding.UTF8.GetBytes(textToEncrypt);
+                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
+                {
+                    ms = new MemoryStream();
+                    cs = new CryptoStream(ms, des.CreateEncryptor(publickeybyte, secretkeyByte), CryptoStreamMode.Write);
+                    cs.Write(inputbyteArray, 0, inputbyteArray.Length);
+                    cs.FlushFinalBlock();
+                    ToReturn = Convert.ToBase64String(ms.ToArray());
+                }
+                return ToReturn;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex.InnerException);
+            }
+        }
 
-        
-        //public string GetPathByDN(string distinguishedName)
-        //{// Input  (distinguishedName) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-        // // Output (LDAP Path) LDAP://SERVER:PORT/OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-
-        //    
-        //}
-        //public string ConvertToDomain(string value)
-        //{// Input  (distinguishedName, Path, email) OU=Users,OU=UnitedStates,OU=Marvel,OU=Marvel Company,DC=MarvelDomain,DC=local
-        // // Output (domain) marveldomain.local
-        //    string cont = "";
-        //    value = value.ToLower();
-        //    if (value.Contains("@"))
-        //    {//Email
-        //        string[] d = value.Split("@");
-        //        return d[1];
-        //    }
-        //    if (value.Contains("ldap://"))
-        //    {// Path
-        //        string[] d = value.Split("/");
-        //        for (int i = 0; i < d.Length; i++)
-        //        {
-        //            if ((d[i].Contains("dc=")) && (d[i].Contains(",")))
-        //            {
-        //                string[] g = d[i].Split(",");
-        //                for (int e = 0; e < g.Length; e++)
-        //                {
-        //                    if (g[e].Contains("dc="))
-        //                    {
-        //                        cont = cont + g[e];
-        //                        cont = cont.Replace("dc=", "");
-        //                        cont = cont.ToLower();
-        //                        if (g.Length != (e + 1))
-        //                        {
-        //                            cont = cont + ".";
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        return cont;
-        //    }
-        //    if (value.Contains("."))
-        //    {
-        //        return value;
-        //    }
-        //    else
-        //    {//DistinguishedName
-        //        string[] d = value.Split(",");
-        //        for (int i = 0; i < d.Length; i++)
-        //        {
-        //            if (d[i].Contains("dc="))
-        //            {
-        //                cont = cont + d[i];
-        //                cont = cont.Replace("dc=", "");
-        //                cont = cont.ToLower();
-        //                if (d.Length != (i + 1))
-        //                {
-        //                    cont = cont + ".";
-        //                }
-        //            }
-        //        }
-        //        return cont;
-        //    }
-        //}
-        //public string RemoveCN(string value)
-        //{// INPUT (Path ) ldap://192.168.0.99:389/cn=user,ou=users,ou=unitedstates,ou=marvel,ou=marvel company,dc=marveldomain,dc=local
-        // // OUTPUT (Path no <cn=> tag) ldap://192.168.0.99:389/ou=users,ou=unitedstates,ou=marvel,ou=marvel company,dc=marveldomain,dc=local
-        //    string path = "";
-        //    value = value.ToLower();
-        //    if (value.Contains("ldap://"))
-        //    {
-        //        string[] itens1 = value.Split(",");
-        //        for (int i = 0; i < itens1.Length; i++)
-        //        {
-        //            if (itens1[i].Contains("ldap:"))
-        //            {//Splitar na Barra
-
-        //                string[] itens2 = itens1[i].Split("/");
-        //                for (int j = 0; j < itens2.Length; j++)
-        //                {
-        //                    if (itens2[j].Contains("ldap:"))
-        //                    {
-        //                        path = itens2[j].ToUpper() + "//";
-        //                        continue;
-        //                    }
-        //                    if (itens2[j].Contains(":"))
-        //                    {
-        //                        path = path + itens2[j] + "/";
-        //                        continue;
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                path = path + itens1[i];
-        //                if (itens1.Length != (i + 1))
-        //                {
-        //                    path = path + ",";
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return path;
-        //}
+        public string Decrypt(string textToDecrypt)
+        {
+            try
+            {
+                
+                string ToReturn = "";
+                string publickey = "publmarv";
+                string privatekey = "privmarv";
+                byte[] privatekeyByte = { };
+                privatekeyByte = System.Text.Encoding.UTF8.GetBytes(privatekey);
+                byte[] publickeybyte = { };
+                publickeybyte = System.Text.Encoding.UTF8.GetBytes(publickey);
+                MemoryStream ms = null;
+                CryptoStream cs = null;
+                byte[] inputbyteArray = new byte[textToDecrypt.Replace(" ", "+").Length];
+                inputbyteArray = Convert.FromBase64String(textToDecrypt.Replace(" ", "+"));
+                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
+                {
+                    ms = new MemoryStream();
+                    cs = new CryptoStream(ms, des.CreateDecryptor(publickeybyte, privatekeyByte), CryptoStreamMode.Write);
+                    cs.Write(inputbyteArray, 0, inputbyteArray.Length);
+                    cs.FlushFinalBlock();
+                    Encoding encoding = Encoding.UTF8;
+                    ToReturn = encoding.GetString(ms.ToArray());
+                }
+                return ToReturn;
+            }
+            catch (Exception ae)
+            {
+                throw new Exception(ae.Message, ae.InnerException);
+            }
+        }
     }
 }
 

@@ -7,9 +7,10 @@ namespace AgentNetCore.Service
     public interface IOrganizationalUnitService : IService<IOrganizationalUnitService>
     {
         OrganizationalUnitVO Create(OrganizationalUnitVO organizationalUnit);
-        OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit);
+        List<OrganizationalUnitVO> FindAll();
+        List<OrganizationalUnitVO> FindByDn(string dn);
         OrganizationalUnitVO FindByName(string domain, string nameOU);
-        List<OrganizationalUnitVO> FindAll(string domain);
+        OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit);
         void Delete(string domain, string samName);
     }
 }

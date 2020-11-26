@@ -18,6 +18,8 @@ namespace AgentNetCore.Service
         }
         public UserVO Create(UserVO user)
         {
+
+            
             try
             {
                 UserRepository ldapUser = new UserRepository(_mySQLContext);

@@ -31,12 +31,17 @@ namespace AgentNetCore.Service
                 throw ex;
             }
         }
-        public List<OrganizationalUnitVO> FindAll(string domain)
+        public List<OrganizationalUnitVO> FindAll()
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-            return _converter.ParseList(ldapOrg.FindAll(domain));
+            return _converter.ParseList(ldapOrg.FindAll());
         }
 
+        public List<OrganizationalUnitVO> FindByDn(string dn)
+        {
+            OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
+            return _converter.ParseList(ldapOrg.FindByDn(dn));
+        }
 
         public OrganizationalUnitVO FindByName(string domain, string nameOU)
         {

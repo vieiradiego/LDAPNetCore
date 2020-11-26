@@ -26,39 +26,126 @@ namespace AgentNetCore.Context
                 credential.DN = user.DistinguishedName;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = ("samaccountname=" + user.SamAccountName);
+                search.Filter = ("samAccountName=" + user.SamAccountName);
                 SearchResult result = search.FindOne();
                 if (result == null)
                 {
                     DirectoryEntry newUser = dirEntry.Children.Add("CN=" + user.Name, ObjectApplication.Category.user.ToString());
-                    newUser.Properties["samAccountName"].Value = user.SamAccountName;
-                    newUser.Properties["givenName"].Value = user.FirstName;
-                    newUser.Properties["initials"].Value = user.Inicials;
-                    newUser.Properties["c"].Value = user.Country;
-                    newUser.Properties["cn"].Value = user.Name;
-                    newUser.Properties["company"].Value = user.Company;
-                    newUser.Properties["department"].Value = user.Departament;
-                    newUser.Properties["description"].Value = user.Description;
-                    newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
-                    newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.DistinguishedName;
-                    newUser.Properties["employeeID"].Value = user.EmployeeID;
-                    newUser.Properties["l"].Value = user.City;
-                    newUser.Properties["mail"].Value = user.EmailAddress;
-                    newUser.Properties["manager"].Value = user.Manager;
-                    newUser.Properties["mobile"].Value = user.MobilePhone;
-                    newUser.Properties["name"].Value = user.Name;
-                    newUser.Properties["o"].Value = user.Departament;
-                    newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
-                    newUser.Properties["postalCode"].Value = user.PostalCode;
-                    newUser.Properties["sn"].Value = user.Surname;
-                    newUser.Properties["st"].Value = user.State;
-                    newUser.Properties["streetAddress"].Value = user.StreetAddress;
-                    newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
-                    newUser.Properties["title"].Value = user.Title;
-                    newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
+                    if (!String.IsNullOrWhiteSpace(user.SamAccountName))
+                    {
+                        newUser.Properties["samAccountName"].Value = user.SamAccountName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.DistinguishedName) && (!String.IsNullOrWhiteSpace(user.DisplayName)))
+                    {
+                        newUser.Properties["distinguishedName"].Value = "CN=" + user.DisplayName + "," + user.DistinguishedName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Name))
+                    {
+                        newUser.Properties["name"].Value = user.Name;
+                        newUser.Properties["cn"].Value = user.Name;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.FirstName))
+                    {
+                        newUser.Properties["givenName"].Value = user.FirstName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Surname))
+                    {
+                        newUser.Properties["sn"].Value = user.Surname;
+                    }
+
+                    if (!String.IsNullOrWhiteSpace(user.Inicials))
+                    {
+                        newUser.Properties["initials"].Value = user.Inicials;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.DisplayName))
+                    {
+                        newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Title))
+                    {
+                        newUser.Properties["title"].Value = user.Title;
+
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.EmailAddress))
+                    {
+                        newUser.Properties["mail"].Value = user.EmailAddress;
+                        newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Country))
+                    {
+                        newUser.Properties["c"].Value = user.Country;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Description))
+                    {
+                        newUser.Properties["description"].Value = user.Description;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Company))
+                    {
+                        newUser.Properties["company"].Value = user.Company;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Departament))
+                    {
+                        newUser.Properties["department"].Value = user.Departament;
+                        newUser.Properties["o"].Value = user.Departament;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.MobilePhone))
+                    {
+                        newUser.Properties["mobile"].Value = user.MobilePhone;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.OfficePhone))
+                    {
+                        newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Manager))
+                    {
+                        newUser.Properties["manager"].Value = user.Manager;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.EmployeeID))
+                    {
+                        newUser.Properties["employeeID"].Value = user.EmployeeID;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Office))
+                    {
+                        newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.State))
+                    {
+                        newUser.Properties["st"].Value = user.State;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.City))
+                    {
+                        newUser.Properties["l"].Value = user.City;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.StreetAddress))
+                    {
+                        newUser.Properties["streetAddress"].Value = user.StreetAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.PostalCode))
+                    {
+                        newUser.Properties["postalCode"].Value = user.PostalCode;
+                    }
                     newUser.CommitChanges();
-                    SetEnable(newUser);
-                    newUser.CommitChanges();
+                    if (user.Enabled)
+                    {// 0 ou 1
+                        SetEnable(newUser);
+                        newUser.CommitChanges();
+                    }
+                    if (user.PasswordNotRequired)
+                    {
+
+                    }
+                    if (user.PasswordNeverExpires)
+                    {
+
+                    }
+                    if (user.CanNotChangePassword)
+                    {
+
+                    }
+                    if (user.ChangePasswordAtLogon)
+                    {
+
+                    }
                     dirEntry.Close();
                     newUser.Close();
                     return FindBySamName(credential, user.SamAccountName);
@@ -74,7 +161,11 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 if (e.Message.Equals("The object already exists.\r\n"))
                 {
-                    Console.WriteLine("\r\nO Usuario ja existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
+                    Console.WriteLine("\r\nO Usuario já existe no contexto:\r\n\t" + e.GetType() + ":" + e.Message);
+                }
+                if (e.Message.Equals("The server is not operational.\r\n"))
+                {
+                    Console.WriteLine("\r\nServidor não operacional:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
                 return null;
             }
@@ -230,31 +321,111 @@ namespace AgentNetCore.Context
                 if (result != null)
                 {
                     DirectoryEntry newUser = result.GetDirectoryEntry();
-                    newUser.Properties["givenName"].Value = user.FirstName;
-                    newUser.Properties["initials"].Value = user.Inicials;
-                    newUser.Properties["c"].Value = user.Country;
-                    newUser.Properties["company"].Value = user.Company;
-                    newUser.Properties["department"].Value = user.Departament;
-                    newUser.Properties["description"].Value = user.Description;
-                    newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
-                    newUser.Properties["employeeID"].Value = user.EmployeeID;
-                    newUser.Properties["l"].Value = user.City;
-                    newUser.Properties["mail"].Value = user.EmailAddress;
-                    newUser.Properties["mobile"].Value = user.MobilePhone;
-                    newUser.Properties["o"].Value = user.Departament;
-                    newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
-                    newUser.Properties["postalCode"].Value = user.PostalCode;
-                    newUser.Properties["sn"].Value = user.Surname;
-                    newUser.Properties["st"].Value = user.State;
-                    newUser.Properties["streetAddress"].Value = user.StreetAddress;
-                    newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
-                    newUser.Properties["title"].Value = user.Title;
-                    newUser.Properties["manager"].Value = user.Manager;
+                    if (!String.IsNullOrWhiteSpace(user.FirstName))
+                    {
+                        newUser.Properties["givenName"].Value = user.FirstName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Surname))
+                    {
+                        newUser.Properties["sn"].Value = user.Surname;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Inicials))
+                    {
+                        newUser.Properties["initials"].Value = user.Inicials;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.DisplayName))
+                    {
+                        newUser.Properties["displayName"].Value = (user.DisplayName + " - " + user.EmployeeID);
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Title))
+                    {
+                        newUser.Properties["title"].Value = user.Title;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.EmailAddress))
+                    {
+                        newUser.Properties["mail"].Value = user.EmailAddress;
+                        newUser.Properties["userPrincipalName"].Value = user.EmailAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Country))
+                    {
+                        newUser.Properties["c"].Value = user.Country;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Description))
+                    {
+                        newUser.Properties["description"].Value = user.Description;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Company))
+                    {
+                        newUser.Properties["company"].Value = user.Company;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Departament))
+                    {
+                        newUser.Properties["department"].Value = user.Departament;
+                        newUser.Properties["o"].Value = user.Departament;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.MobilePhone))
+                    {
+                        newUser.Properties["mobile"].Value = user.MobilePhone;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.OfficePhone))
+                    {
+                        newUser.Properties["telephoneNumber"].Value = user.OfficePhone;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Manager))
+                    {
+                        newUser.Properties["manager"].Value = user.Manager;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.EmployeeID))
+                    {
+                        newUser.Properties["employeeID"].Value = user.EmployeeID;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.Office))
+                    {
+                        newUser.Properties["physicalDeliveryOfficeName"].Value = user.Office;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.State))
+                    {
+                        newUser.Properties["st"].Value = user.State;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.City))
+                    {
+                        newUser.Properties["l"].Value = user.City;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.StreetAddress))
+                    {
+                        newUser.Properties["streetAddress"].Value = user.StreetAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(user.PostalCode))
+                    {
+                        newUser.Properties["postalCode"].Value = user.PostalCode;
+                    }
                     newUser.CommitChanges();
-                    newUser.Rename("cn=" + user.Name);
+                    if (user.Enabled)
+                    {// 0 ou 1
+                        SetEnable(newUser);
+                    }
+                    if (user.PasswordNotRequired)
+                    {
+
+                    }
+                    if (user.PasswordNeverExpires)
+                    {
+
+                    }
+                    if (user.CanNotChangePassword)
+                    {
+
+                    }
+                    if (user.ChangePasswordAtLogon)
+                    {
+
+                    }
                     newUser.CommitChanges();
-                    SetEnable(newUser);
-                    newUser.CommitChanges();
+                    if (!String.IsNullOrWhiteSpace(user.Name))
+                    {
+                        newUser.Rename("cn=" + user.Name);
+                        newUser.CommitChanges();
+                    }
                     dirEntry.Close();
                     newUser.Close();
                     return FindBySamName(credential, user.SamAccountName);
@@ -399,7 +570,7 @@ namespace AgentNetCore.Context
                 foreach (String ldapField in fields.PropertyNames)
                 {
                     user.MemberOf = new List<Group>();
-                    
+
                     foreach (Object myCollection in fields[ldapField])
                     {
                         switch (ldapField)
