@@ -36,7 +36,6 @@ namespace AgentNetCore.Model
         public string AccountPassword { get; set; }
         public DateTime AccountExpirationDate { get; set; }
         public string DirectReports { get; set; }
-        public List<Group> MemberOf { get; set; }
         public string UserAccountControl { get; set; }
     }
 }

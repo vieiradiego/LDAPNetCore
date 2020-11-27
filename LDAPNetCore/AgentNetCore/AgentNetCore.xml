@@ -36,7 +36,7 @@
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="userName"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.ForestsController.Get">
+        <member name="M:AgentNetCore.Controllers.ForestsController.Get(System.String)">
             <summary>
             RECUPERAR todos os objetos do Domínios configurados
             </summary>
@@ -44,8 +44,9 @@
             Retorna uma lista de objetos no formato ForestVO
             </remarks>
             <returns>O retorno desse serviço é uma lista de ForestVO </returns>
+            <param name="dn"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.ForestsController.Get(System.String)">
+        <member name="M:AgentNetCore.Controllers.ForestsController.Find(System.String)">
             <summary>
             RECUPERAR os dados para um determinado Domínio
             </summary>
@@ -53,9 +54,9 @@
             Retorna um objeto no formato ForestVO
             </remarks>
             <returns>O retorno desse serviço é um determinado ForestVO encontrado</returns>
-            <param name="domain"></param>
+            <param name="dn"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.GroupsController.Get">
+        <member name="M:AgentNetCore.Controllers.GroupsController.Get(System.String)">
             <summary>
             RECUPERAR todos os Grupos
             </summary>
@@ -64,7 +65,7 @@
             </remarks>
             <returns>O retorno desse serviço é uma lista de GroupVO </returns>
         </member>
-        <member name="M:AgentNetCore.Controllers.GroupsController.GetBySamName(System.String,System.String)">
+        <member name="M:AgentNetCore.Controllers.GroupsController.GetBySamName(System.String,System.String,System.String)">
             <summary>
             RECUPERAR os dados para um determinado Grupo
             </summary>
@@ -72,7 +73,8 @@
             Retorna um objeto no formato GroupVO
             </remarks>
             <returns>O retorno desse serviço é um determinado GroupVO encontrado</returns>
-            <param name="domain"></param>
+            <param name="dn"></param>
+            <param name="email"></param>
             <param name="samName"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.GroupsController.Post(AgentNetCore.Data.VO.GroupVO)">
@@ -103,7 +105,7 @@
             Não há retorno de objetos nesse método
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
-            <param name="domain"></param>
+            <param name="dn"></param>
             <param name="samName"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.GroupsController.GetUsers(AgentNetCore.Data.VO.GroupVO)">

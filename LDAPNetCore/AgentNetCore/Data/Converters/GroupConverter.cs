@@ -15,13 +15,22 @@ namespace AgentNetCore.Data.Converters
             if (origin == null) return null;
             return new Group()
             {
+                SamAccountName = origin.SamAccountName,
+                DistinguishedName = origin.DistinguishedName,
                 DisplayName = origin.DisplayName,
                 Name = origin.Name,
                 Description = origin.Description,
                 EmailAddress = origin.EmailAddress,
-                SamAccountName = origin.SamAccountName,
-                ObjectSid = origin.ObjectSid,
-                PathDomain = origin.PathDomain
+                PathDomain = origin.PathDomain,
+                Manager = origin.Manager,
+                Domain = origin.Domain,
+                DomainLocal = origin.DomainLocal,
+                Global = origin.Global,
+                AppBasic = origin.AppBasic,
+                AppQuery = origin.AppQuery,
+                Security = origin.Security,
+                System = origin.System,
+                Universal = origin.Universal,
             };
         }
 
@@ -30,13 +39,22 @@ namespace AgentNetCore.Data.Converters
             if (origin == null) return null;
             return new GroupVO()
             {
+                SamAccountName = origin.SamAccountName,
+                DistinguishedName = origin.DistinguishedName,
                 DisplayName = origin.DisplayName,
                 Name = origin.Name,
                 Description = origin.Description,
                 EmailAddress = origin.EmailAddress,
-                SamAccountName = origin.SamAccountName,
-                ObjectSid = origin.ObjectSid,
-                PathDomain = origin.PathDomain
+                PathDomain = origin.PathDomain,
+                Manager = origin.Manager,
+                Domain = origin.Domain,
+                DomainLocal = origin.DomainLocal,
+                Global = origin.Global,
+                AppBasic = origin.AppBasic,
+                AppQuery = origin.AppQuery,
+                Security = origin.Security,
+                System = origin.System,
+                Universal = origin.Universal,
             };
         }
 

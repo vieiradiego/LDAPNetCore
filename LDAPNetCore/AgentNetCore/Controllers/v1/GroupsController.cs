@@ -36,11 +36,18 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string dn)
         {
-            var group = _groupService.FindAll();
-            if (group == null) return NotFound();
-            return Ok(group);
+            if (!string.IsNullOrWhiteSpace(dn))
+            {
+                var user = _groupService.FindByDn(dn);
+                if (user == null) return NotFound();
+                return Ok(user);
+            }
+            else
+            {
+                return Ok(_groupService.FindAll());
+            }
         }
 
         /// <summary>
@@ -50,22 +57,37 @@ namespace AgentNetCore.Controllers
         /// Retorna um objeto no formato GroupVO
         /// </remarks>
         /// <returns>O retorno desse serviço é um determinado GroupVO encontrado</returns>
-        /// <param name="domain"></param>
+        /// <param name="dn"></param>
+        /// <param name="email"></param>
         /// <param name="samName"></param>
-        [HttpGet("domain/samName")]
+        [HttpGet("find")]
         [SwaggerResponse((200), Type = typeof(GroupVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
+        [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetBySamName([FromQuery] string domain, [FromQuery] string samName)
+        public IActionResult GetBySamName([FromQuery] string dn, [FromQuery] string email,
+                                          [FromQuery] string samName)
         {
-            var group = this._groupService.FindBySamName(domain, samName);
-            if (group == null) return NotFound();
-            return Ok(group);
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(email))
+            {
+                var group = _groupService.FindByEmail(dn, email);
+                if (group == null) return NotFound();
+                return Ok(group);
+            }
+            else if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samName))
+            {
+                var group = _groupService.FindBySamName(dn, samName);
+                if (group == null) return NotFound();
+                return Ok(group);
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
-
         /// <summary>
         /// CRIAR um Grupo
         /// </summary>
@@ -88,7 +110,6 @@ namespace AgentNetCore.Controllers
             if (newGroup.Value == null) return Conflict();
             return newGroup;
         }
-
         /// <summary>
         /// ATUALIZAR um Grupo
         /// </summary>
@@ -116,18 +137,22 @@ namespace AgentNetCore.Controllers
         /// Não há retorno de objetos nesse método
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
-        /// <param name="domain"></param>
+        /// <param name="dn"></param>
         /// <param name="samName"></param>
-        [HttpDelete("domain/samName")]
+        [HttpDelete]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete([FromQuery] string domain, [FromQuery] string samName)
+        public IActionResult Delete([FromQuery] string dn, [FromQuery] string samName)
         {
-            this._groupService.Delete(domain, samName);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samName))
+            {
+                this._groupService.Delete(dn, samName);
+                return NoContent();
+            }
+            return BadRequest();
         }
         /// <summary>
         /// RECUPERAR os Usuários de um Grupo

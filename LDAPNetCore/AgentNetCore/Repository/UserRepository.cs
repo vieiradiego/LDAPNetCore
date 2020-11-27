@@ -34,6 +34,7 @@ namespace AgentNetCore.Context
                     if (!String.IsNullOrWhiteSpace(user.SamAccountName))
                     {
                         newUser.Properties["samAccountName"].Value = user.SamAccountName;
+                        newUser.Properties["info"].Value = "Usuário criado pela API RESTful  - " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
                     }
                     if (!String.IsNullOrWhiteSpace(user.DistinguishedName) && (!String.IsNullOrWhiteSpace(user.DisplayName)))
                     {
@@ -189,7 +190,7 @@ namespace AgentNetCore.Context
                 List<SearchResult> results = new List<SearchResult>();
                 foreach (SearchResult userResult in usersResult)
                 {
-                    userList.Add(GetResult(credential, userResult));
+                    userList.Add(GetResult(userResult));
                 }
                 return userList;
             }
@@ -207,7 +208,7 @@ namespace AgentNetCore.Context
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = "(" + campo + "=" + valor + ")";
-                var user = GetResult(credential, search.FindOne());
+                var user = GetResult(search.FindOne());
                 if ((user.DistinguishedName == null) && (user.SamAccountName == null)) return null;
                 return user;
             }
@@ -321,6 +322,7 @@ namespace AgentNetCore.Context
                 if (result != null)
                 {
                     DirectoryEntry newUser = result.GetDirectoryEntry();
+                    newUser.Properties["info"].Value = "Usuário Editado pela API RESTful  - " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
                     if (!String.IsNullOrWhiteSpace(user.FirstName))
                     {
                         newUser.Properties["givenName"].Value = user.FirstName;
@@ -435,7 +437,6 @@ namespace AgentNetCore.Context
                     Console.WriteLine("\r\nUser not identify:\r\n\t");
                     return null;
                 }
-
             }
             catch (Exception e)
             {
@@ -562,15 +563,35 @@ namespace AgentNetCore.Context
         #endregion
 
         #region GET
-        private User GetProperties(CredentialRepository credential, User user, ResultPropertyCollection fields)
+        
+        private User GetResult(SearchResult result)
+        {
+            User user = new User();
+            try
+            {
+                if (result != null)
+                {
+                    return GetProperties(user, result.Properties);
+                }
+                else
+                {
+                    Console.WriteLine("User not found!");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+
+            }
+            return user;
+        }
+        private User GetProperties(User user, ResultPropertyCollection fields)
         {
             try
             {
                 GroupRepository group = new GroupRepository(_mySQLContext);
                 foreach (String ldapField in fields.PropertyNames)
                 {
-                    user.MemberOf = new List<Group>();
-
                     foreach (Object myCollection in fields[ldapField])
                     {
                         switch (ldapField)
@@ -654,10 +675,6 @@ namespace AgentNetCore.Context
                             case "userprincipalname":
                                 user.UserAccountControl = myCollection.ToString();
                                 break;
-                            case "memberof":
-                                credential.DN = myCollection.ToString();
-                                user.MemberOf.Add(group.FindByDN(credential, credential.DN));
-                                break;
                         }
                         Console.WriteLine(String.Format("{0,-20} : {1}", ldapField, myCollection.ToString()));
                     }
@@ -670,28 +687,7 @@ namespace AgentNetCore.Context
             }
             return user;
         }
-        private User GetResult(CredentialRepository credential, SearchResult result)
-        {
-            User user = new User();
-            try
-            {
-                if (result != null)
-                {
-                    return GetProperties(credential, user, result.Properties);
-                }
-                else
-                {
-                    Console.WriteLine("User not found!");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
-            }
-            return user;
-        }
-        private List<User> GetResultList(CredentialRepository credential, SearchResult result)
+        private List<User> GetResultList(SearchResult result)
         {
             List<User> userList = new List<User>();
             if (result != null)
@@ -702,7 +698,7 @@ namespace AgentNetCore.Context
                 {
                     User user = new User();
 
-                    userList.Add(GetProperties(credential, user, fields));
+                    userList.Add(GetProperties(user, fields));
                 }
 
                 return userList;

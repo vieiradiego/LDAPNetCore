@@ -30,14 +30,63 @@ namespace AgentNetCore.Context
                 if (result == null)
                 {
                     DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
-                    newGroup.Properties["cn"].Value = group.SamAccountName;
-                    newGroup.Properties["samAccountName"].Value = group.SamAccountName;
-                    newGroup.Properties["displayName"].Value = group.DisplayName;
-                    newGroup.Properties["description"].Value = group.Description;
-                    newGroup.Properties["mail"].Value = group.EmailAddress;
-                    newGroup.Properties["managedBy"].Value = group.Manager;
-                    var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
-                    newGroup.Properties["groupType"].Value = groupType;
+                    
+                    if (!String.IsNullOrWhiteSpace(group.SamAccountName))
+                    {
+                        newGroup.Properties["samAccountName"].Value = group.SamAccountName;
+                        newGroup.Properties["info"].Value = "Grupo criado pela API RESTful  - " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.Name))
+                    {
+                        newGroup.Properties["name"].Value = group.Name;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.DistinguishedName) && (!String.IsNullOrWhiteSpace(group.DisplayName)))
+                    {
+                        newGroup.Properties["distinguishedName"].Value = "CN=" + group.DisplayName + "," + group.DistinguishedName;
+                        newGroup.Properties["displayName"].Value = group.DisplayName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.EmailAddress))
+                    {
+                        newGroup.Properties["mail"].Value = group.EmailAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.Manager))
+                    {
+                        newGroup.Properties["managedby"].Value = group.Manager;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.Description))
+                    {
+                        newGroup.Properties["description"].Value = group.Description;
+                    }
+                    if ((group.System) && (group.Global))
+                    {//SYSTEM = 0x00000001 |//GLOBAL = 0x00000002,// 1 + 2
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.GLOBAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.System) && (group.DomainLocal))
+                    {//SYSTEM = 0x00000001 | DOMAIN_LOCAL = 0x00000004 // 1 + 4
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.DOMAIN_LOCAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.System) && (group.Universal))
+                    {//SYSTEM = 0x00000001 | UNIVERSAL = 0x00000008 // 1 + 8
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.UNIVERSAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.Security) && (group.Global))
+                    {//SECURITY = 2147483648 | GLOBAL = 0x00000002,// 2147483648 + 2
+                        var groupType = unchecked((int)(GroupType.SECURITY | GroupType.GLOBAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.Security) && (group.DomainLocal))
+                    {//SECURITY = 2147483648 | DOMAIN_LOCAL = 0x00000004 // 2147483648 + 4
+                        var groupType = unchecked((int)(GroupType.SECURITY | GroupType.DOMAIN_LOCAL));
+                        newGroup.Properties["groupType"].Value = groupType; //
+                    }
+                    else if ((group.Security) && (group.Universal))
+                    {//SECURITY = 2147483648 | UNIVERSAL = 0x00000008 // 2147483648 + 8
+                        var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
+                        newGroup.Properties["groupType"].Value = groupType;//-2147483640
+                    }
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
@@ -59,24 +108,23 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         public List<Group> FindAll()
         {
             ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
-            return FindAll(config.GetConfiguration("DefaultDomain"));
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = config.GetConfiguration("DefaultDN");
+            return FindAll(credential);
         }
-
-        public List<Group> FindAll(string dn)
+        private List<Group> FindAll(CredentialRepository credential)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 List<Group> groupList = new List<Group>();
                 search.Filter = "(&(objectClass=group))";
-                SearchResultCollection groupsResult = search.FindAll();
+                var groupsResult = search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
                 foreach (SearchResult groupResult in groupsResult)
                 {
                     groupList.Add(GetResult(groupResult));
@@ -154,53 +202,11 @@ namespace AgentNetCore.Context
             }
         }
 
-        public Group FindByDN(string dn)
+        public List<Group> FindByDn(string dn)
         {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
-                return FindOne(credential, "distinguishedName", dn);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
-
-        public Group FindByDN(CredentialRepository credential, string dn)
-        {
-            try
-            {
-                return FindOne(credential, "distinguishedName", dn);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
-            }
-        }
-
-        public Group Create2(Group group)
-        {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = group.DistinguishedName;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, credential.Path);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
-                groupPrincipal.SamAccountName = group.SamAccountName;
-                groupPrincipal.Name = group.Name;
-                groupPrincipal.Description = group.Description;
-                groupPrincipal.DisplayName = group.DisplayName;
-                groupPrincipal.Save();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-            }
-            return group;
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = dn;
+            return FindAll(credential);
         }
         public Group Update(Group group)
         {
@@ -215,14 +221,57 @@ namespace AgentNetCore.Context
                 if (result != null)
                 {
                     DirectoryEntry newGroup = result.GetDirectoryEntry();
-                    newGroup.Properties["displayName"].Value = group.DisplayName;
-                    newGroup.Properties["description"].Value = group.Description;
-                    newGroup.Properties["mail"].Value = group.EmailAddress;
-                    newGroup.Properties["managedBy"].Value = group.Manager;
-                    var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
-                    newGroup.Properties["groupType"].Value = groupType;
-                    newGroup.CommitChanges();
-                    newGroup.Rename("cn=" + group.SamAccountName);
+                    newGroup.Properties["info"].Value = "Grupo Editado pela API RESTful  - " + DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss");
+                    if (!String.IsNullOrWhiteSpace(group.Name))
+                    {
+                        newGroup.Rename("cn=" + group.Name);
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.DistinguishedName) && (!String.IsNullOrWhiteSpace(group.DisplayName)))
+                    {
+                        newGroup.Properties["displayName"].Value = group.DisplayName;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.EmailAddress))
+                    {
+                        newGroup.Properties["mail"].Value = group.EmailAddress;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.Manager))
+                    {
+                        newGroup.Properties["managedby"].Value = group.Manager;
+                    }
+                    if (!String.IsNullOrWhiteSpace(group.Description))
+                    {
+                        newGroup.Properties["description"].Value = group.Description;
+                    }
+                    if ((group.System) && (group.Global))
+                    {//SYSTEM = 0x00000001 |//GLOBAL = 0x00000002,// 1 + 2
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.GLOBAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.System) && (group.DomainLocal))
+                    {//SYSTEM = 0x00000001 | DOMAIN_LOCAL = 0x00000004 // 1 + 4
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.DOMAIN_LOCAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.System) && (group.Universal))
+                    {//SYSTEM = 0x00000001 | UNIVERSAL = 0x00000008 // 1 + 8
+                        var groupType = unchecked((int)(GroupType.SYSTEM | GroupType.UNIVERSAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.Security) && (group.Global))
+                    {//SECURITY = 2147483648 | GLOBAL = 0x00000002,// 2147483648 + 2
+                        var groupType = unchecked((int)(GroupType.SECURITY | GroupType.GLOBAL));
+                        newGroup.Properties["groupType"].Value = groupType;
+                    }
+                    else if ((group.Security) && (group.DomainLocal))
+                    {//SECURITY = 2147483648 | DOMAIN_LOCAL = 0x00000004 // 2147483648 + 4
+                        var groupType = unchecked((int)(GroupType.SECURITY | GroupType.DOMAIN_LOCAL));
+                        newGroup.Properties["groupType"].Value = groupType; //
+                    }
+                    else if ((group.Security) && (group.Universal))
+                    {//SECURITY = 2147483648 | UNIVERSAL = 0x00000008 // 2147483648 + 8
+                        var groupType = unchecked((int)(GroupType.UNIVERSAL | GroupType.SECURITY));
+                        newGroup.Properties["groupType"].Value = groupType;//-2147483640
+                    }
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
@@ -240,7 +289,6 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         public void Delete(Group group)
         {
             try
@@ -261,34 +309,6 @@ namespace AgentNetCore.Context
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
         }
-
-        public void Delete2(Group group)
-        {
-            try
-            {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = group.DistinguishedName;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, group.SamAccountName, credential.Path);
-                GroupPrincipal groupPrincipal = new GroupPrincipal(pc);
-                groupPrincipal = GroupPrincipal.FindByIdentity(pc, group.EmailAddress);
-                if (groupPrincipal != null)
-                {
-                    groupPrincipal.Delete();
-                }
-            }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
-            {
-                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-
-                if (e.Message == "The server is not operational")
-                {//The server is not operational.
-
-                }
-            }
-        }
-
-        
-
         #endregion
 
 
@@ -304,15 +324,15 @@ namespace AgentNetCore.Context
                 }
                 else
                 {
-                    Console.WriteLine("Group not found!");
-                    return null;
+                    Console.WriteLine("User not found!");
                 }
             }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
+
             }
+            return group;
         }
         private Group GetProperties(Group group, ResultPropertyCollection fields)
         {
@@ -346,9 +366,6 @@ namespace AgentNetCore.Context
                             case "managedby":
                                 group.Manager = myCollection.ToString();
                                 break;
-                            case "objectsid":
-                                group.ObjectSid = myCollection.ToString();
-                                break;
                             case "adspath":
                                 group.PathDomain = myCollection.ToString();
                                 break;
@@ -358,7 +375,7 @@ namespace AgentNetCore.Context
                 }
                 return group;
             }
-            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            catch (DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;

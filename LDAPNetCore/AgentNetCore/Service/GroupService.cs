@@ -27,28 +27,42 @@ namespace AgentNetCore.Service
             }
             catch (Exception ex)
             {
-                throw ex;
+                return null;
             }
         }
-
         public List<GroupVO> FindAll()
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
             return _converter.ParseList(ldapGroup.FindAll());
         }
-
-        public GroupVO FindBySamName(string domain, string samName)
+        public GroupVO FindBySamName(string dn, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return _converter.Parse(ldapGroup.FindBySamName(domain, samName));
+            return _converter.Parse(ldapGroup.FindBySamName(dn, samName));
         }
 
-        public GroupVO FindByEmail(string domain, string email)
+        public GroupVO FindByEmail(string dn, string email)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            return _converter.Parse(ldapGroup.FindByEmail(domain, email));
+            return _converter.Parse(ldapGroup.FindByEmail(dn, email));
         }
-
+        public List<GroupVO> FindByDn(string dn)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            return _converter.ParseList(ldapGroup.FindByDn(dn));
+        }
+        private bool Exist(string dn, string samName)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            if (ldapGroup.FindBySamName(dn, samName) != null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
         public GroupVO Update(GroupVO group)
         {
             try
@@ -58,29 +72,17 @@ namespace AgentNetCore.Service
                 groupEntity = ldapGroup.Update(groupEntity);
                 return _converter.Parse(groupEntity);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
-
-        private bool Exist(string domain, string samName)
-        {
-            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
-            if (ldapGroup.FindBySamName(domain, samName) != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-        public void Delete(string domain, string samName)
+        public void Delete(string dn, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
             Group result = new Group();
-            result = ldapGroup.FindBySamName(domain, samName);
+            result = ldapGroup.FindBySamName(dn, samName);
             try
             {
                 if (result != null)
@@ -89,9 +91,9 @@ namespace AgentNetCore.Service
                     ldapGroup.Delete(result);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
         }
     }

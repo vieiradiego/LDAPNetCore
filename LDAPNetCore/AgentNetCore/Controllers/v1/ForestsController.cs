@@ -30,6 +30,7 @@ namespace AgentNetCore.Controllers
         /// Retorna uma lista de objetos no formato ForestVO
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de ForestVO </returns>
+        /// <param name="dn"></param>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<ForestVO>))]
         [SwaggerResponse(204)]
@@ -37,33 +38,18 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get()
+        public IActionResult Get([FromQuery] string dn)
         {
-            var forest = _forestService.FindAll();
-            if (forest == null) return NotFound();
-            return Ok(forest);
-        }
-
-        /// <summary>
-        /// RECUPERAR os dados para um determinado Domínio
-        /// </summary>
-        /// <remarks>
-        /// Retorna um objeto no formato ForestVO
-        /// </remarks>
-        /// <returns>O retorno desse serviço é um determinado ForestVO encontrado</returns>
-        /// <param name="domain"></param>
-        [HttpGet("domain")]
-        [SwaggerResponse((200), Type = typeof(ForestVO))]
-        [SwaggerResponse(204)]
-        [SwaggerResponse(400)]
-        [SwaggerResponse(401)]
-        [Authorize("Bearer")]
-        [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get([FromQuery] string domain)
-        {
-            var forest = _forestService.FindAll(domain);
-            if (forest == null) return NotFound();
-            return Ok(forest);
+            if (!string.IsNullOrWhiteSpace(dn))
+            {
+                var forest = _forestService.FindAll(dn);
+                if (forest == null) return NotFound();
+                return Ok(forest);
+            }
+            else
+            {
+                return Ok(_forestService.FindAll());
+            }
         }
     }
 }

@@ -49,7 +49,6 @@ namespace AgentNetCore.Service
         public UserVO FindBySamName(string dn, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-
             return _converter.Parse(ldapUser.FindBySamName(dn, samName));
         }
 
@@ -74,7 +73,6 @@ namespace AgentNetCore.Service
         public List<UserVO> FindByDn(string dn)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
-            OrganizationalUnitRepository ug = new OrganizationalUnitRepository(_mySQLContext);
             return _converter.ParseList(ldapUser.FindByDn(dn));
         }
         public UserVO Update(UserVO user)

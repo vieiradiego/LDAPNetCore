@@ -51,7 +51,6 @@ namespace AgentNetCore.Data.Converters
                 SamAccountName = origin.SamAccountName,
                 DistinguishedName = origin.DistinguishedName,
                 DirectReports = origin.DirectReports,
-                MemberOf = _groupConverter.ParseList(origin.MemberOf),
                 UserAccountControl = origin.UserAccountControl,
             };
         }
@@ -95,7 +94,6 @@ namespace AgentNetCore.Data.Converters
                 SamAccountName = origin.SamAccountName,
                 DistinguishedName = origin.DistinguishedName,
                 DirectReports = origin.DirectReports,
-                MemberOf = _groupConverter.ParseList(origin.MemberOf),
                 UserAccountControl = origin.UserAccountControl,
             };
         }

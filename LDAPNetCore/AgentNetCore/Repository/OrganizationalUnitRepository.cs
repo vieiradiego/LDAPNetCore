@@ -14,7 +14,7 @@ namespace AgentNetCore.Context
         public OrganizationalUnitRepository(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
-            CreateMarvelStructure();
+            //CreateMarvelStructure(); //Cria Mock
         }
         #region CRUD
         public OrganizationalUnit Create(OrganizationalUnit orgUnit)
