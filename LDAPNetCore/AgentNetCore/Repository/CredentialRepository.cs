@@ -55,9 +55,10 @@ namespace AgentNetCore.Context
                 _mySQLContext.Entry(result).CurrentValues.SetValues(credential);
                 _mySQLContext.SaveChanges();
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
             return _mySQLContext.Credentials.FirstOrDefault(c => ((c.User == credential.User) && (c.Pass == credential.Pass)));
         }
@@ -120,8 +121,9 @@ namespace AgentNetCore.Context
                 List<Server> servers = sr.GetServers(_Domain);
                 return "LDAP://" + servers[0].Address + ":" + servers[0].Port + "/" + dn;
             }
-            catch (Exception)
+            catch (Exception e )
             {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
         }
@@ -136,9 +138,9 @@ namespace AgentNetCore.Context
                     _User = Decrypt(c.User);
                     _Pass = Decrypt(c.Pass);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    throw;
+                    Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 }
             }
         }
@@ -178,9 +180,10 @@ namespace AgentNetCore.Context
                 }
                 return ToReturn;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw new Exception(ex.Message, ex.InnerException);
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
 
@@ -211,9 +214,10 @@ namespace AgentNetCore.Context
                 }
                 return ToReturn;
             }
-            catch (Exception ae)
+            catch (Exception e)
             {
-                throw new Exception(ae.Message, ae.InnerException);
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
     }

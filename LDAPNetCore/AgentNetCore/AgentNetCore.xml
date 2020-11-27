@@ -46,16 +46,6 @@
             <returns>O retorno desse serviço é uma lista de ForestVO </returns>
             <param name="dn"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.ForestsController.Find(System.String)">
-            <summary>
-            RECUPERAR os dados para um determinado Domínio
-            </summary>
-            <remarks>
-            Retorna um objeto no formato ForestVO
-            </remarks>
-            <returns>O retorno desse serviço é um determinado ForestVO encontrado</returns>
-            <param name="dn"></param>
-        </member>
         <member name="M:AgentNetCore.Controllers.GroupsController.Get(System.String)">
             <summary>
             RECUPERAR todos os Grupos

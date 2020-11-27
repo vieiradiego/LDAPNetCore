@@ -24,10 +24,10 @@ namespace AgentNetCore.Service
             ForestRepository ldapForest = new ForestRepository(_mySQLContext);
             return _converter.ParseList(ldapForest.FindAll());
         }
-        public List<ForestVO> FindAll(string domain)
+        public List<ForestVO> FindAll(string dn)
         {
             ForestRepository ldapForest = new ForestRepository(_mySQLContext);
-            return _converter.ParseList(ldapForest.FindAll(domain));
+            return _converter.ParseList(ldapForest.FindByDn(dn));
         }
     }
 }

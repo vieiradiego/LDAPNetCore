@@ -20,17 +20,21 @@ namespace AgentNetCore.Repository
         }
         public List<Forest> FindAll()
         {
+            ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = config.GetConfiguration("DefaultDN");
+            return FindAll(credential);
+        }
+        public List<Forest> FindAll(CredentialRepository credential)
+        {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ConfigurationRepository config = new ConfigurationRepository(_mySQLContext);
-                string dn = config.GetConfiguration("DefaultDN");
-                credential.DN = dn;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = String.Format("(&(objectCategory={0})(name={1}))", "container", ObjectApplication.Category.system);
-                SearchResultCollection forestsResult = search.FindAll();
                 List<Forest> forestList = new List<Forest>();
+                search.Filter = String.Format("(&(objectCategory={0})(name={1}))", "container", ObjectApplication.Category.system);
+                var forestsResult = search.FindAll();
+                List<SearchResult> results = new List<SearchResult>();
                 foreach (SearchResult forestResult in forestsResult)
                 {
                     forestList.Add(GetResult(forestResult));
@@ -39,12 +43,16 @@ namespace AgentNetCore.Repository
             }
             catch (Exception e)
             {
-
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
-                return null;
+                return new List<Forest>();
             }
         }
-
+        public List<Forest> FindByDn(string dn)
+        {
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = dn;
+            return FindAll(credential);
+        }
         private Forest GetResult(SearchResult result)
         {
             Forest forest = new Forest();
@@ -149,9 +157,6 @@ namespace AgentNetCore.Repository
             }
         }
 
-        public List<Forest> FindAll(string domain)
-        {
-            return null;
-        }
+        
     }
 }
