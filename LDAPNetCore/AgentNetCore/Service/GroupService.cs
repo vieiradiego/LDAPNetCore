@@ -78,23 +78,66 @@ namespace AgentNetCore.Service
                 return null;
             }
         }
-        public void Delete(string dn, string samName)
+        public bool Delete(string dn, string samName)
         {
             GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
             Group result = new Group();
-            result = ldapGroup.FindBySamName(dn, samName);
+            credential.DN = dn;
+            result = ldapGroup.FindBySamName(credential, samName);
             try
             {
                 if (result != null)
                 {
-
-                    ldapGroup.Delete(result);
+                    if (ldapGroup.Delete(credential, result))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
+        }
+        public bool AddUser(string userDn, string groupDn)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            return ldapGroup.AddUser(userDn, groupDn);
+        }
+        public bool RemoveUser(string userDn, string groupDn)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            return ldapGroup.RemoveUser(userDn, groupDn);
+        }
+
+        public bool ChangeGroup(string userDn, string newGroupDn, string oldGroupDn)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            if ((ldapGroup.AddUser(userDn, newGroupDn)) && (ldapGroup.RemoveUser(userDn, oldGroupDn)))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        public List<GroupVO> GetGroups(string userDn)
+        {
+            UserRepository ldapUser = new UserRepository(_mySQLContext);
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = userDn;
+            return _converter.ParseList(ldapUser.GetGroups(credential, userDn));
         }
     }
 }

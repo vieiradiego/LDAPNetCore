@@ -149,53 +149,62 @@ namespace AgentNetCore.Controllers
         {
             if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samName))
             {
-                this._groupService.Delete(dn, samName);
-                return NoContent();
+                if(this._groupService.Delete(dn, samName)) return NoContent(); ;
+                return Conflict();
             }
             return BadRequest();
         }
         /// <summary>
-        /// RECUPERAR os Usuários de um Grupo
+        /// ADICIONAR um Usuário em um Grupo
         /// </summary>
         /// <remarks>
-        /// Retorna uma lista de objetos no formato UserVO
+        /// Não há retorno de objetos nesse método
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma lista de UserVO encontrados pelo Usuário informado</returns>
-        /// <param name="group"></param>
-        [HttpGet("users")]
-        [SwaggerResponse((200), Type = typeof(List<UserVO>))]
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="userDn"></param>
+        /// <param name="groupDn"></param>
+        [HttpPost("adduser")]
+        [SwaggerResponse(200)]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetUsers([FromBody] GroupVO group)
+        public IActionResult AddUser([FromQuery] string userDn, [FromQuery] string groupDn)
         {
-            //_userService.Delete(domain, email);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(userDn) && !string.IsNullOrWhiteSpace(groupDn))
+            {
+                if (this._groupService.AddUser(userDn, groupDn)) return Ok();
+                return Conflict();
+            }
+            return BadRequest();
         }
         /// <summary>
-        /// INCLUIR um Usuário em um Grupo
+        /// REMOVER um Usuário em um Grupo
         /// </summary>
         /// <remarks>
-        /// Retorna uma lista de objetos no formato UserVO
+        /// Não há retorno de objetos nesse método
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma lista de UserVO encontrados pelo Usuário informado</returns>
-        /// <param name="samNameUser"></param>
-        /// <param name="samNameNewGroup"></param>
-        [HttpPost("adduser")]
-        [SwaggerResponse((200), Type = typeof(List<UserVO>))]
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="userDn"></param>
+        /// <param name="groupDn"></param>
+        [HttpPost("removeuser")]
+        [SwaggerResponse(200)]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult AddUser([FromQuery] string samNameUser, [FromQuery] string samNameNewGroup)
+        public IActionResult RemoveUser([FromQuery] string userDn, [FromQuery] string groupDn)
         {
-            //_userService.Delete(domain, email);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(userDn) && !string.IsNullOrWhiteSpace(groupDn))
+            {
+                if (this._groupService.RemoveUser(userDn, groupDn)) return Ok();
+                return Conflict();
+            }
+            return BadRequest();
         }
         /// <summary>
         /// ALTERAR o Usuário de um Grupo Antigo para um Grupo Novo
@@ -204,10 +213,35 @@ namespace AgentNetCore.Controllers
         /// Retorna uma lista de objetos no formato GroupVO
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de GroupVO encontrados no Usuário informado</returns>
-        /// <param name="samNameUser"></param>
-        /// <param name="samNameNewGroup"></param>
-        /// <param name="samNameOldGroup"></param>
+        /// <param name="userDn"></param>
+        /// <param name="newGroupDn"></param>
+        /// <param name="oldGroupDn"></param>
         [HttpPost("changegroup")]
+        [SwaggerResponse(200)]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [SwaggerResponse(404)]
+        [Authorize("Bearer")]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public IActionResult ChangeGroup([FromQuery] string userDn, [FromQuery] string newGroupDn, [FromQuery] string oldGroupDn)
+        {
+            if ((!string.IsNullOrWhiteSpace(userDn)) && (!string.IsNullOrWhiteSpace(newGroupDn))&& (!string.IsNullOrWhiteSpace(oldGroupDn)))
+            {
+                this._groupService.ChangeGroup(userDn, newGroupDn, oldGroupDn);
+                return Ok();
+            }
+            return BadRequest();
+        }
+        /// <summary>
+        /// RECUPERAR os Grupos de um Usuário
+        /// </summary>
+        /// <remarks>
+        /// Retorna uma lista de objetos no formato GroupVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma lista de GroupVO encontrados pelo Usuário informado</returns>
+        /// <param name="userDn"></param>
+        [HttpGet("groupsbyuser")]
         [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -215,9 +249,13 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult ChangeGroup([FromQuery] string samNameUser, [FromQuery] string samNameNewGroup, [FromQuery] string samNameOldGroup)
+        public IActionResult GetGroups([FromQuery] string userDn)
         {
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(userDn))
+            {
+                return new ObjectResult(_groupService.GetGroups(userDn));
+            }
+            return BadRequest();
         }
     }
 }

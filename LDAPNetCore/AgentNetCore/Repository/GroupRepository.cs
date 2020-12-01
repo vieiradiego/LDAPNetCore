@@ -30,7 +30,7 @@ namespace AgentNetCore.Context
                 if (result == null)
                 {
                     DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
-                    
+
                     if (!String.IsNullOrWhiteSpace(group.SamAccountName))
                     {
                         newGroup.Properties["samAccountName"].Value = group.SamAccountName;
@@ -143,12 +143,11 @@ namespace AgentNetCore.Context
         {
             try
             {
-                ServerRepository sr = new ServerRepository(_mySQLContext);
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
-                Group group = new Group();
                 search.Filter = "(" + campo + "=" + valor + ")";
-                group = GetResult(search.FindOne());
+                var group = GetResult(search.FindOne());
+                if ((group.DistinguishedName == null) && (group.SamAccountName == null)) return null;
                 return group;
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
@@ -207,6 +206,14 @@ namespace AgentNetCore.Context
             CredentialRepository credential = new CredentialRepository(_mySQLContext);
             credential.DN = dn;
             return FindAll(credential);
+        }
+
+        public Group FindByDnOne(string dn)
+        {
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = dn;
+            List<Group> g = FindAll(credential);
+            return (Group)g[0];
         }
         public Group Update(Group group)
         {
@@ -289,12 +296,10 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public void Delete(Group group)
+        public bool Delete(CredentialRepository credential, Group group)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = group.DistinguishedName;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("SamAccountName=" + group.SamAccountName);
@@ -302,11 +307,17 @@ namespace AgentNetCore.Context
                 if (groupFind != null)
                 {
                     groupFind.DeleteTree();
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
         }
         #endregion
@@ -381,9 +392,77 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
+        public bool AddUser(string userDn, string groupDn)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = groupDn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                if (dirEntry != null)
+                {
+                    dirEntry.Properties["member"].Add(userDn);
+                    dirEntry.CommitChanges();
+                    dirEntry.Close();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
+            }
+        }
+        public bool RemoveUser(string userDn, string groupDn)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = groupDn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                if (dirEntry != null)
+                {
+                    dirEntry.Properties["member"].Remove(userDn);
+                    dirEntry.CommitChanges();
+                    dirEntry.Close();
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
+            }
+        }
+        public List<User> GetUsers(string groupDn)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = groupDn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                if (dirEntry != null)
+                {
+                    return null;
+                }
+                return null;
+            }
+            catch (DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
         #endregion
-
-
 
         public enum GroupType : uint
         {//https://docs.microsoft.com/en-us/windows/win32/adschema/c-group

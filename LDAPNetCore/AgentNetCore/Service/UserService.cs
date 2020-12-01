@@ -4,6 +4,7 @@ using AgentNetCore.Data.VO;
 using AgentNetCore.Model;
 using System;
 using System.Collections.Generic;
+using System.Security;
 
 namespace AgentNetCore.Service
 {
@@ -18,8 +19,6 @@ namespace AgentNetCore.Service
         }
         public UserVO Create(UserVO user)
         {
-
-            
             try
             {
                 UserRepository ldapUser = new UserRepository(_mySQLContext);
@@ -90,15 +89,34 @@ namespace AgentNetCore.Service
             }
         }
 
-        private bool Exist(string domain, string samName)
+        private bool Exist(string dn, string samName)
         {
-            UserRepository ldapUser = new UserRepository(_mySQLContext);
-            if (ldapUser.FindBySamName(domain, samName) != null)
+            try
             {
-                return true;
+                UserRepository ldapUser = new UserRepository(_mySQLContext);
+                User result = new User();
+                result = ldapUser.FindBySamName(dn, samName);
+                if (result != null)
+                {
+                    if ((!String.IsNullOrWhiteSpace(result.SamAccountName)) &&
+                        (!String.IsNullOrWhiteSpace(result.DistinguishedName)))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            catch (Exception e)
             {
+
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return false;
             }
         }
@@ -111,15 +129,74 @@ namespace AgentNetCore.Service
             result = ldapUser.FindBySamName(credential, samName);
             try
             {
-                if (result != null)
+                if (Exist(dn, samName))
                 {
                     ldapUser.Delete(credential, result);
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
+        }
+        public UserVO Inactive(string dn, string samName)
+        {
+            try
+            {
+                if (Exist(dn, samName))
+                {
+                    UserRepository ldapUser = new UserRepository(_mySQLContext);
+                    CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                    credential.DN = dn;
+                    return _converter.Parse(ldapUser.Disable(credential, samName));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public UserVO Active(string dn, string samName)
+        {
+            try
+            {
+                if (Exist(dn, samName))
+                {
+                    UserRepository ldapUser = new UserRepository(_mySQLContext);
+                    CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                    credential.DN = dn;
+                    return _converter.Parse(ldapUser.Enable(credential, samName));
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public void ResetPass(string dn, string samName, string pass)
+        {
+            if (Exist(dn, samName))
+            {
+                UserRepository ldapUser = new UserRepository(_mySQLContext);
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                ldapUser.ResetPassBySamName(credential, samName, pass);
+            }
+        }
+        public List<UserVO> GetUsers(string groupDn)
+        {
+            GroupRepository ldapGroup = new GroupRepository(_mySQLContext);
+            return _converter.ParseList(ldapGroup.GetUsers(groupDn));
         }
     }
 }

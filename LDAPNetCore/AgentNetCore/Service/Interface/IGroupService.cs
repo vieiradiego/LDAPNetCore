@@ -11,8 +11,12 @@ namespace AgentNetCore.Service
         List<GroupVO> FindByDn(string dn);
         GroupVO FindByEmail(string domain, string email);
         GroupVO FindBySamName(string domain, string samName);
-
         GroupVO Update(GroupVO group);
-        void Delete(string domain, string samName);
+        bool Delete(string domain, string samName);
+        bool AddUser(string userDn, string groupDn);
+        bool RemoveUser(string userDn, string groupDn);
+        bool ChangeGroup(string userDn, string newGroupDn, string oldGroupDn);
+        List<GroupVO> GetGroups(string userDn);
+        
     }
 }

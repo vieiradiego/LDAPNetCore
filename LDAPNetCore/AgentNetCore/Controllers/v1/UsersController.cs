@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
+using System.Security;
 using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
@@ -49,7 +50,6 @@ namespace AgentNetCore.Controllers
                 return Ok(_userService.FindAll());
             }
         }
-
         /// <summary>
         /// RECUPERAR os dados de um determinado Usuário
         /// </summary>
@@ -109,7 +109,6 @@ namespace AgentNetCore.Controllers
                 return BadRequest();
             }
         }
-
         /// <summary>
         /// CRIAR um Usuário
         /// </summary>
@@ -132,7 +131,6 @@ namespace AgentNetCore.Controllers
             if (newUser.Value == null) return Conflict();
             return newUser;
         }
-
         /// <summary>
         /// ATUALIZAR um Usuário
         /// </summary>
@@ -168,7 +166,8 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete([FromQuery] string dn, [FromQuery] string samname)
+        public IActionResult Delete([FromQuery] string dn, 
+                                    [FromQuery] string samname)
         {
             if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samname))
             {
@@ -177,26 +176,113 @@ namespace AgentNetCore.Controllers
             }
             return BadRequest();
         }
+        
         /// <summary>
-        /// RECUPERAR os Grupos de um Usuário
+        /// INATIVAR um Usuário
         /// </summary>
         /// <remarks>
-        /// Retorna uma lista de objetos no formato GrupoVO
+        /// Não há retorno de objetos nesse método
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma lista de GrupoVO encontrados pelo Usuário informado</returns>
-        /// <param name="samNameUser"></param>
-        [HttpGet("groups")]
-        [SwaggerResponse((200), Type = typeof(List<GroupVO>))]
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="dn"></param>
+        /// <param name="samname"></param>
+        [HttpPost("enable")]
+        [SwaggerResponse((202), Type = typeof(UserVO))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [Authorize("Bearer")]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public IActionResult Enable([FromQuery] string dn,
+                                      [FromQuery] string samname)
+        {
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samname))
+            {
+                var user = new ObjectResult(_userService.Active(dn, samname));
+                if (user == null) return NoContent();
+                return Ok(user);
+            }
+            return BadRequest();
+        }
+        /// <summary>
+        /// INATIVAR um Usuário
+        /// </summary>
+        /// <remarks>
+        /// Não há retorno de objetos nesse método
+        /// </remarks>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="dn"></param>
+        /// <param name="samname"></param>
+        [HttpPost("disable")]
+        [SwaggerResponse((202), Type = typeof(UserVO))]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [Authorize("Bearer")]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public IActionResult Disable([FromQuery] string dn,
+                                      [FromQuery] string samname)
+        {
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samname))
+            {
+                var user = new ObjectResult(_userService.Inactive(dn, samname));
+                if (user == null) return NoContent();
+                return Ok(user);
+            }
+            return BadRequest();
+        }
+        /// <summary>
+        /// RESETAR senha de um Usuário
+        /// </summary>
+        /// <remarks>
+        /// Não há retorno de objetos nesse método
+        /// </remarks>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
+        /// <param name="dn"></param>
+        /// <param name="samname"></param>
+        /// <param name="pass"></param>
+        [HttpPost("resetpass")]
+        [SwaggerResponse(204)]
+        [SwaggerResponse(400)]
+        [SwaggerResponse(401)]
+        [Authorize("Bearer")]
+        [TypeFilter(typeof(HyperMediaFilter))]
+        public IActionResult ResetPass([FromQuery] string dn,
+                                       [FromQuery] string samname,
+                                       [FromQuery] string pass)
+        {
+            if ((!string.IsNullOrWhiteSpace(dn)) && 
+                (!string.IsNullOrWhiteSpace(samname)) &&
+                (!string.IsNullOrWhiteSpace(dn)))
+            {
+                _userService.ResetPass(dn, samname, pass);
+                return NoContent();
+            }
+            return BadRequest();
+        }
+        /// <summary>
+        /// RECUPERAR os Usuários de um Grupo
+        /// </summary>
+        /// <remarks>
+        /// Retorna uma lista de objetos no formato UserVO
+        /// </remarks>
+        /// <returns>O retorno desse serviço é uma lista de UserVO encontrados pelo Usuário informado</returns>
+        /// <param name="groupDn"></param>
+        [HttpGet("usersbygroup")]
+        [SwaggerResponse((200), Type = typeof(List<UserVO>))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult GetGroups(string samNameUser)
+        public IActionResult GetUsers([FromQuery] string groupDn)
         {
-            //_userService.Delete(domain, email);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(groupDn))
+            {
+                return new ObjectResult(_userService.GetUsers(groupDn));
+            }
+            return BadRequest();
         }
     }
 }

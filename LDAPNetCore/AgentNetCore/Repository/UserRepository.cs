@@ -147,6 +147,7 @@ namespace AgentNetCore.Context
                     {
 
                     }
+                    ResetPassBySamName(credential, user.SamAccountName, user.AccountPassword);
                     dirEntry.Close();
                     newUser.Close();
                     return FindBySamName(credential, user.SamAccountName);
@@ -237,7 +238,12 @@ namespace AgentNetCore.Context
         {
             try
             {
-                return FindOne(credential, "samAccountName", samName);
+                var user = FindOne(credential, "samAccountName", samName);
+                if (user != null)
+                {
+                    return user;
+                }
+                return null;
             }
             catch (Exception e)
             {
@@ -309,6 +315,17 @@ namespace AgentNetCore.Context
             credential.DN = dn;
             return FindAll(credential);
         }
+
+        public User FindByDnOne(string dn)
+        {
+            CredentialRepository credential = new CredentialRepository(_mySQLContext);
+            credential.DN = dn;
+            List<User> users = FindAll(credential);
+            User user = (User)users[0];
+            return user;
+        }
+
+
         public User Update(User user)
         {
             try
@@ -448,7 +465,7 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User Disable(string dn, string samName)
+        private User Disable(string dn, string samName)
         {
             try
             {
@@ -483,12 +500,79 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public User Enable(string dn, string samName)
+
+        public User Disable(CredentialRepository credential, string samName)
+        {
+            try
+            {
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("samaccountname=" + samName);
+                SearchResult result = search.FindOne();
+                if (result != null)
+                {
+                    DirectoryEntry newUser = result.GetDirectoryEntry();
+                    SetDisable(newUser);
+                    newUser.CommitChanges();
+                    dirEntry.Close();
+                    newUser.Close();
+                    return FindBySamName(credential, samName);
+                }
+                else
+                {
+                    Console.WriteLine("\r\nUser not identify:\r\n\t");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Equals("The object already exists."))
+                {
+                    return null;
+                }
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        private User Enable(string dn, string samName)
         {
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
                 credential.DN = dn;
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("samaccountname=" + samName);
+                SearchResult result = search.FindOne();
+                if (result != null)
+                {
+                    DirectoryEntry newUser = result.GetDirectoryEntry();
+                    SetEnable(newUser);
+                    newUser.CommitChanges();
+                    dirEntry.Close();
+                    newUser.Close();
+                    return FindBySamName(credential, samName);
+                }
+                else
+                {
+                    Console.WriteLine("\r\nUser not identify:\r\n\t");
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                if (e.Message.Equals("The object already exists."))
+                {
+                    return null;
+                }
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public User Enable(CredentialRepository credential, string samName)
+        {
+            try
+            {
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
                 search.Filter = ("samaccountname=" + samName);
@@ -537,33 +621,8 @@ namespace AgentNetCore.Context
             }
         }
         #endregion
-
-        #region AUTH
-        private bool Auth(string domainName, string userName, string password)
-        {
-            bool ret = false;
-
-            try
-            {
-                DirectoryEntry de = new DirectoryEntry("LDAP://" + domainName, userName, password);
-                DirectorySearcher dsearch = new DirectorySearcher(de);
-                SearchResult results = null;
-
-                results = dsearch.FindOne();
-
-                ret = true;
-            }
-            catch
-            {
-                ret = false;
-            }
-
-            return ret;
-        }
-        #endregion
-
         #region GET
-        
+
         private User GetResult(SearchResult result)
         {
             User user = new User();
@@ -589,7 +648,6 @@ namespace AgentNetCore.Context
         {
             try
             {
-                GroupRepository group = new GroupRepository(_mySQLContext);
                 foreach (String ldapField in fields.PropertyNames)
                 {
                     foreach (Object myCollection in fields[ldapField])
@@ -732,8 +790,9 @@ namespace AgentNetCore.Context
         {
             try
             {
+                var groupType = unchecked((int)(UserAccountControl.ACCOUNTDISABLE));
                 int userAccountControlValue = (int)user.Properties["userAccountControl"].Value;
-                user.Properties["userAccountControl"].Value = userAccountControlValue | ~0x2;
+                user.Properties["userAccountControl"].Value = userAccountControlValue | groupType;
                 user.CommitChanges();
                 user.Close();
             }
@@ -744,9 +803,16 @@ namespace AgentNetCore.Context
         }
         #endregion
         #region User
-        public List<User> UserChangeGroup(List<User> users, List<Group> newGroups, List<Group> oldGroups)
-        {
 
+        public List<User> ChangeGroupByUsers(string userDn, string oldGroupDn, string newGroupDn)
+        {
+            GroupRepository oldGroupRep = new GroupRepository(_mySQLContext);
+            GroupRepository newGroupRep = new GroupRepository(_mySQLContext);
+            List<User> users = ChangeGroup(FindByDn(userDn), (oldGroupRep.FindByDn(oldGroupDn)), (newGroupRep.FindByDn(newGroupDn)));
+            return users;
+        }
+        private List<User> ChangeGroup(List<User> users, List<Group> newGroups, List<Group> oldGroups)
+        {
             try
             {
                 List<User> refreshUsers = new List<User>();
@@ -778,7 +844,16 @@ namespace AgentNetCore.Context
             }
 
         }
-        public User UserChangeGroup(User user, Group newGroup, Group oldGroup)
+        public User ChangeGroupByUser(string userDn, string oldGroupDn, string newGroupDn)
+        {
+            GroupRepository oldGroupRep = new GroupRepository(_mySQLContext);
+            GroupRepository newGroupRep = new GroupRepository(_mySQLContext);
+            Group oldG = oldGroupRep.FindByDnOne(oldGroupDn);
+            Group newG = newGroupRep.FindByDnOne(newGroupDn);
+            User user = FindByDnOne(userDn);
+            return (User)ChangeGroup(user, oldG, newG);
+        }
+        public User ChangeGroup(User user, Group newGroup, Group oldGroup)
         {
             try
             {
@@ -794,6 +869,13 @@ namespace AgentNetCore.Context
                 return null;
             }
 
+        }
+        public void AddUserToGroup(string userDn, string groupDn)
+        {
+            GroupRepository groupRep = new GroupRepository(_mySQLContext);
+            Group group = groupRep.FindByDnOne(groupDn);
+            User user = FindByDnOne(userDn);
+            AddUserToGroup(user, group);
         }
         private void AddUserToGroup(User user, Group group)
         {
@@ -812,6 +894,13 @@ namespace AgentNetCore.Context
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
             }
+        }
+        public void RemoveUserToGroup(string userDn, string groupDn)
+        {
+            GroupRepository groupRep = new GroupRepository(_mySQLContext);
+            Group group = groupRep.FindByDnOne(groupDn);
+            User user = FindByDnOne(userDn);
+            RemoveUserToGroup(user, group);
         }
         private void RemoveUserToGroup(User user, Group group)
         {
@@ -832,38 +921,63 @@ namespace AgentNetCore.Context
 
             }
         }
-        public bool ResetPassSamName(string dn, string samName, string newPass)
+        public bool ResetPassBySamName(CredentialRepository credential, string samName, string newPass)
         {
             try
             {
-                CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                credential.DN = dn;
-                PrincipalContext pc = new PrincipalContext(ContextType.Domain, credential.User, credential.Pass);
-                UserPrincipal userPrincipal = new UserPrincipal(pc);
-                if (userPrincipal != null)
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("samaccountname=" + samName);
+                SearchResult result = search.FindOne();
+                if (result != null)
                 {
-                    ServerRepository sr = new ServerRepository(_mySQLContext);
-                    DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
-                    DirectorySearcher search = new DirectorySearcher(dirEntry);
-                    search.Filter = ("SamAccountName=" + samName);
-                    DirectoryEntry user = (search.FindOne()).GetDirectoryEntry();
-                    user.Invoke("ChangePassword", new object[] { newPass });
+                    DirectoryEntry user = result.GetDirectoryEntry();
+                    user.Password = newPass;
                     user.CommitChanges();
-                    user.Close();
                     dirEntry.Close();
+                    user.Close();
                     return true;
                 }
                 else
                 {
-                    Console.WriteLine("\r\nUsuário não encontrado");
                     return false;
                 }
-
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return false;
+            }
+        }
+        public List<Group> GetGroups(CredentialRepository credential, string userDn)
+        {
+            try
+            {
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = ("distinguishedName=" + userDn);
+                SearchResult result = search.FindOne();
+                if (result != null)
+                {
+                    GroupRepository groupRepo = new GroupRepository(_mySQLContext);
+                    List<Group> groupList = new List<Group>();
+                    Group group = new Group();
+                    for (int i = 0; i < result.Properties["memberOf"].Count; i++)
+                    {
+                        group = groupRepo.FindByDnOne((String)result.Properties["memberOf"][i]);
+                        groupList.Add(group);
+                    }
+                    return groupList;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
         #endregion

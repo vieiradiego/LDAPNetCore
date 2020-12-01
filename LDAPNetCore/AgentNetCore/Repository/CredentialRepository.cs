@@ -127,6 +127,20 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
+        private string PathToDn(string dn)
+        {
+            try
+            {
+                ServerRepository sr = new ServerRepository(_mySQLContext);
+                List<Server> servers = sr.GetServers(_Domain);
+                return "LDAP://" + servers[0].Address + ":" + servers[0].Port + "/" + dn;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
         private void SetCredential()
         {
             if ((_User == null) && (_Pass == null))
