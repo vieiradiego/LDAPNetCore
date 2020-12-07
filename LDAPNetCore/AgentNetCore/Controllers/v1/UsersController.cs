@@ -70,7 +70,7 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Find([FromQuery] string dn,      [FromQuery] string email, [FromQuery] string samName,
+        public IActionResult Find([FromQuery] string dn,        [FromQuery] string email, [FromQuery] string samName,
                                   [FromQuery] string firstName, [FromQuery] string lastName)
         {
             
@@ -155,7 +155,7 @@ namespace AgentNetCore.Controllers
         /// DELETAR um Usuário
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="dn"></param>
@@ -176,12 +176,11 @@ namespace AgentNetCore.Controllers
             }
             return BadRequest();
         }
-        
         /// <summary>
-        /// INATIVAR um Usuário
+        /// ATIVAR um Usuário
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="dn"></param>
@@ -208,7 +207,7 @@ namespace AgentNetCore.Controllers
         /// INATIVAR um Usuário
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="dn"></param>
@@ -235,7 +234,7 @@ namespace AgentNetCore.Controllers
         /// RESETAR senha de um Usuário
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="dn"></param>
@@ -255,7 +254,7 @@ namespace AgentNetCore.Controllers
                 (!string.IsNullOrWhiteSpace(samname)) &&
                 (!string.IsNullOrWhiteSpace(dn)))
             {
-                _userService.ResetPass(dn, samname, pass);
+                if (_userService.ResetPass(dn, samname, pass)) return Ok();
                 return NoContent();
             }
             return BadRequest();

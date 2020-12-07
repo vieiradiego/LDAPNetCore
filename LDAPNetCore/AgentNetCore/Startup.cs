@@ -189,9 +189,11 @@ namespace AgentNetCore
             services.AddScoped<IGroupService, GroupService>();
             services.AddScoped<IOrganizationalUnitService, OrganizationalUnitService>();
             services.AddScoped<IForestService, ForestService>();
+            services.AddScoped<IComputerService, ComputerService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IClientBusiness, ClientBusiness>();
             services.AddScoped<IClientRepository, ClientRepository>();
+            
 
             //Singleton - Uma única instância para toda a aplicação
 

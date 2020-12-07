@@ -16,8 +16,8 @@ namespace AgentNetCore.Service
         UserVO FindByFirstName(string dn, string firstName);
         UserVO FindByLastName(string dn, string lastName);
         UserVO Update(UserVO user);
-        void Delete(string domain, string samName);
-        void ResetPass(string dn, string samName, string pass);
+        bool Delete(string domain, string samName);
+        bool ResetPass(string dn, string samName, string pass);
         UserVO Active(string dn, string samName);
         UserVO Inactive(string dn, string samName);
         List<UserVO> GetUsers(string groupDn);

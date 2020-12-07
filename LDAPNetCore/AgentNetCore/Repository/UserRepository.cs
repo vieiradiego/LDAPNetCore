@@ -602,7 +602,7 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public void Delete(CredentialRepository credential, User user)
+        public bool Delete(CredentialRepository credential, User user)
         {
             try
             {
@@ -613,11 +613,17 @@ namespace AgentNetCore.Context
                 if (userFind != null)
                 {
                     userFind.DeleteTree();
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
         }
         #endregion

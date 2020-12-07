@@ -28,7 +28,7 @@ namespace AgentNetCore.Controllers
         /// Retorna uma lista de objetos no formato OrganizationalUnitVO
         /// </remarks>
         /// <returns>O retorno desse serviço é uma lista de OrganizationalUnitVO </returns>
-        /// <param name="domain"></param>
+        /// <param name="dn"></param>
         [HttpGet]
         [SwaggerResponse((200), Type = typeof(List<OrganizationalUnitVO>))]
         [SwaggerResponse(204)]
@@ -49,7 +49,6 @@ namespace AgentNetCore.Controllers
                 return Ok(_orgService.FindAll());
             }
         }
-
         /// <summary>
         /// RECUPERAR os dados de uma determinada Unidade Organizacional (OU)
         /// </summary>
@@ -60,7 +59,7 @@ namespace AgentNetCore.Controllers
         /// <param name="domain"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        [HttpGet("domain/name")]
+        [HttpGet("find")]
         [SwaggerResponse((200), Type = typeof(OrganizationalUnitVO))]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
@@ -68,13 +67,25 @@ namespace AgentNetCore.Controllers
         [SwaggerResponse(404)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Get([FromQuery] string domain, [FromQuery] string name)
+        public IActionResult Find([FromQuery] string dn, [FromQuery] string name, [FromQuery] string ou)
         {
-            var orgUnit = _orgService.FindByName(domain, name);
-            if (orgUnit == null) return NotFound();
-            return Ok(orgUnit);
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(name))
+            {
+                var orgUnit = _orgService.FindByName(dn, name);
+                if (orgUnit == null) return NotFound();
+                return Ok(orgUnit);
+            }
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(ou))
+            {
+                var orgUnit = _orgService.FindByOu(dn, ou);
+                if (orgUnit == null) return NotFound();
+                return Ok(orgUnit);
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
-
         /// <summary>
         /// CRIAR uma Unidade Organizacional (OU)
         /// </summary>
@@ -97,7 +108,6 @@ namespace AgentNetCore.Controllers
             if (newOrgUnit.Value == null) return Conflict();
             return newOrgUnit;
         }
-
         /// <summary>
         /// ATUALIZAR uma Unidade Organizacional (OU)
         /// </summary>
@@ -107,7 +117,7 @@ namespace AgentNetCore.Controllers
         /// <returns>O retorno desse serviço é um OrganizationalUnitVO atualizado</returns>
         /// <param name="orgUnit"></param>
         [HttpPut]
-        [SwaggerResponse((202), Type = typeof(UserVO))]
+        [SwaggerResponse((202), Type = typeof(OrganizationalUnitVO))]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
@@ -125,18 +135,23 @@ namespace AgentNetCore.Controllers
         /// Não há retorno de objetos nesse método
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
-        /// <param name="domain"></param>
-        /// <param name="samName"></param>
-        [HttpDelete("domain/samName")]
+        /// <param name="dn"></param>
+        /// <param name="name"></param>
+        [HttpDelete]
         [SwaggerResponse(204)]
         [SwaggerResponse(400)]
         [SwaggerResponse(401)]
         [Authorize("Bearer")]
         [TypeFilter(typeof(HyperMediaFilter))]
-        public IActionResult Delete([FromQuery] string domain, [FromQuery] string samName)
+        public IActionResult Delete([FromQuery] string dn, 
+                                    [FromQuery] string name)
         {
-            this._orgService.Delete(domain, samName);
-            return NoContent();
+            if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(name))
+            {
+                if (_orgService.Delete(dn, name)) return Ok();
+                return NoContent();
+            }
+            return BadRequest();
         }
     }
 }

@@ -29,7 +29,7 @@ namespace AgentNetCore.Context
                 SearchResult result = search.FindOne();
                 if (result == null)
                 {
-                    DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, "group");
+                    DirectoryEntry newGroup = dirEntry.Children.Add("CN=" + group.SamAccountName, ObjectApplication.Category.group.ToString());
 
                     if (!String.IsNullOrWhiteSpace(group.SamAccountName))
                     {
@@ -138,7 +138,6 @@ namespace AgentNetCore.Context
             }
 
         }
-
         private Group FindOne(CredentialRepository credential, string campo, string valor)
         {
             try
@@ -157,7 +156,6 @@ namespace AgentNetCore.Context
             }
 
         }
-
         public Group FindByEmail(string dn, string email)
         {
             try
@@ -172,7 +170,6 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         public Group FindBySamName(CredentialRepository credential, string samName)
         {
             try
@@ -185,7 +182,6 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         public Group FindBySamName(string dn, string samName)
         {
             try
@@ -200,14 +196,12 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
         public List<Group> FindByDn(string dn)
         {
             CredentialRepository credential = new CredentialRepository(_mySQLContext);
             credential.DN = dn;
             return FindAll(credential);
         }
-
         public Group FindByDnOne(string dn)
         {
             CredentialRepository credential = new CredentialRepository(_mySQLContext);
@@ -282,7 +276,7 @@ namespace AgentNetCore.Context
                     newGroup.CommitChanges();
                     dirEntry.Close();
                     newGroup.Close();
-                    return FindOne(credential, "SamAccountName", group.SamAccountName);
+                    return FindBySamName(credential, group.SamAccountName);
                 }
                 else
                 {
@@ -335,7 +329,7 @@ namespace AgentNetCore.Context
                 }
                 else
                 {
-                    Console.WriteLine("User not found!");
+                    Console.WriteLine("Group not found!");
                 }
             }
             catch (Exception e)
@@ -464,7 +458,7 @@ namespace AgentNetCore.Context
 
         #endregion
 
-        public enum GroupType : uint
+        private enum GroupType : uint
         {//https://docs.microsoft.com/en-us/windows/win32/adschema/c-group
             SYSTEM = 0x00000001,//1
             GLOBAL = 0x00000002,//2

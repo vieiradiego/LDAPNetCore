@@ -25,8 +25,9 @@ namespace AgentNetCore.Service
                 GroupEntity = ldapGroup.Create(GroupEntity);
                 return _converter.Parse(GroupEntity);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
                 return null;
             }
         }
@@ -89,14 +90,7 @@ namespace AgentNetCore.Service
             {
                 if (result != null)
                 {
-                    if (ldapGroup.Delete(credential, result))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return (ldapGroup.Delete(credential, result));
                 }
                 else
                 {

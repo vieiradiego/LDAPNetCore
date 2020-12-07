@@ -26,9 +26,10 @@ namespace AgentNetCore.Service
                 organizationalUnitEntity = ldapOrg.Create(organizationalUnitEntity);
                 return _converter.Parse(organizationalUnitEntity);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
         public List<OrganizationalUnitVO> FindAll()
@@ -43,10 +44,15 @@ namespace AgentNetCore.Service
             return _converter.ParseList(ldapOrg.FindByDn(dn));
         }
 
-        public OrganizationalUnitVO FindByName(string domain, string nameOU)
+        public OrganizationalUnitVO FindByName(string domain, string name)
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
-            return _converter.Parse(ldapOrg.FindByName(domain, nameOU));
+            return _converter.Parse(ldapOrg.FindByName(domain, name));
+        }
+        public OrganizationalUnitVO FindByOu(string domain, string ou)
+        {
+            OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
+            return _converter.Parse(ldapOrg.FindByOu(domain, ou));
         }
         public OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit)
         {
@@ -57,12 +63,12 @@ namespace AgentNetCore.Service
                 organizationalUnitEntity = ldapOrg.Update(organizationalUnitEntity);
                 return  _converter.Parse(organizationalUnitEntity);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
             }
         }
-
         private bool Exist(string domain, string nameOU)
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
@@ -75,7 +81,7 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string domain, string nameOU)
+        public bool Delete(string domain, string nameOU)
         {
             OrganizationalUnitRepository ldapOrg = new OrganizationalUnitRepository(_mySQLContext);
             OrganizationalUnit result = new OrganizationalUnit();
@@ -84,13 +90,17 @@ namespace AgentNetCore.Service
             {
                 if (result != null)
                 {
-
-                    ldapOrg.Delete(result);
+                    return ldapOrg.Delete(result);
+                }
+                else
+                {
+                    return false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw ex;
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
         }
     }

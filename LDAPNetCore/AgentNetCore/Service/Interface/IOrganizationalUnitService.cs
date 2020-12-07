@@ -9,8 +9,9 @@ namespace AgentNetCore.Service
         OrganizationalUnitVO Create(OrganizationalUnitVO organizationalUnit);
         List<OrganizationalUnitVO> FindAll();
         List<OrganizationalUnitVO> FindByDn(string dn);
-        OrganizationalUnitVO FindByName(string domain, string nameOU);
+        OrganizationalUnitVO FindByName(string dn, string name);
+        OrganizationalUnitVO FindByOu(string dn, string ou);
         OrganizationalUnitVO Update(OrganizationalUnitVO organizationalUnit);
-        void Delete(string domain, string samName);
+        bool Delete(string domain, string samName);
     }
 }

@@ -3,7 +3,7 @@ using AgentNetCore.Model;
 
 namespace AgentNetCore.Repository.Interface
 {
-    public interface IClientRepository : IRepository
+    public interface IClientRepository
     {
         Client ValidateCredentials(ClientVO client);
         Client ValidateCredentials(string secretClient);

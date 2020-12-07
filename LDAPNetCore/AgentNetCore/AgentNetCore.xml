@@ -36,6 +36,57 @@
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="userName"></param>
         </member>
+        <member name="M:AgentNetCore.Controllers.v1.ComputersController.Get(System.String)">
+            <summary>
+            RECUPERAR todos os Computadores
+            </summary>
+            <remarks>
+            Retorna uma lista de objetos no formato ComputerVO
+            </remarks>
+            <returns>O retorno desse serviço é uma lista de ComputerVO </returns>
+        </member>
+        <member name="M:AgentNetCore.Controllers.v1.ComputersController.GetBySamName(System.String,System.String)">
+            <summary>
+            RECUPERAR os dados para um determinado Computador
+            </summary>
+            <remarks>
+            Retorna um objeto no formato ComputerVO
+            </remarks>
+            <returns>O retorno desse serviço é um determinado ComputerVO encontrado</returns>
+            <param name="dn"></param>
+            <param name="samName"></param>
+        </member>
+        <member name="M:AgentNetCore.Controllers.v1.ComputersController.Post(AgentNetCore.Data.VO.ComputerVO)">
+            <summary>
+            CRIAR um Computador
+            </summary>
+            <remarks>
+            Retorna um objeto no formato ComputerVO
+            </remarks>
+            <returns>O retorno desse serviço é um ComputerVO criado</returns>
+            <param name="computer"></param>
+        </member>
+        <member name="M:AgentNetCore.Controllers.v1.ComputersController.Put(AgentNetCore.Data.VO.ComputerVO)">
+            <summary>
+            ATUALIZAR um Computador
+            </summary>
+            <remarks>
+            Retorna um objeto no formato ComputerVO
+            </remarks>
+            <returns>O retorno desse serviço é um GroupVO atualizado</returns>
+            <param name="computer"></param>
+        </member>
+        <member name="M:AgentNetCore.Controllers.v1.ComputersController.Delete(System.String,System.String)">
+            <summary>
+            DELETAR um Computador
+            </summary>
+            <remarks>
+            Retorno de HTTP code
+            </remarks>
+            <returns>O retorno desse serviço é código HTTP</returns>
+            <param name="dn"></param>
+            <param name="samName"></param>
+        </member>
         <member name="M:AgentNetCore.Controllers.ForestsController.Get(System.String)">
             <summary>
             RECUPERAR todos os objetos do Domínios configurados
@@ -92,7 +143,7 @@
             DELETAR um Grupo
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="dn"></param>
@@ -103,7 +154,7 @@
             ADICIONAR um Usuário em um Grupo
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="userDn"></param>
@@ -114,7 +165,7 @@
             REMOVER um Usuário em um Grupo
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="userDn"></param>
@@ -125,9 +176,9 @@
             ALTERAR o Usuário de um Grupo Antigo para um Grupo Novo
             </summary>
             <remarks>
-            Retorna uma lista de objetos no formato GroupVO
+            Retorno de HTTP code
             </remarks>
-            <returns>O retorno desse serviço é uma lista de GroupVO encontrados no Usuário informado</returns>
+            <returns>O retorno desse serviço é código HTTP</returns>
             <param name="userDn"></param>
             <param name="newGroupDn"></param>
             <param name="oldGroupDn"></param>
@@ -150,9 +201,9 @@
             Retorna uma lista de objetos no formato OrganizationalUnitVO
             </remarks>
             <returns>O retorno desse serviço é uma lista de OrganizationalUnitVO </returns>
-            <param name="domain"></param>
+            <param name="dn"></param>
         </member>
-        <member name="M:AgentNetCore.Controllers.OrganizationsUnitsController.Get(System.String,System.String)">
+        <member name="M:AgentNetCore.Controllers.OrganizationsUnitsController.Find(System.String,System.String,System.String)">
             <summary>
             RECUPERAR os dados de uma determinada Unidade Organizacional (OU)
             </summary>
@@ -192,8 +243,8 @@
             Não há retorno de objetos nesse método
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
-            <param name="domain"></param>
-            <param name="samName"></param>
+            <param name="dn"></param>
+            <param name="name"></param>
         </member>
         <member name="M:AgentNetCore.Controllers.UsersController.Get(System.String)">
             <summary>
@@ -244,7 +295,7 @@
             DELETAR um Usuário
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="dn"></param>
@@ -252,10 +303,10 @@
         </member>
         <member name="M:AgentNetCore.Controllers.UsersController.Enable(System.String,System.String)">
             <summary>
-            INATIVAR um Usuário
+            ATIVAR um Usuário
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="dn"></param>
@@ -266,7 +317,7 @@
             INATIVAR um Usuário
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="dn"></param>
@@ -277,7 +328,7 @@
             RESETAR senha de um Usuário
             </summary>
             <remarks>
-            Não há retorno de objetos nesse método
+            Retorno de HTTP code
             </remarks>
             <returns>O retorno desse serviço é código HTTP</returns>
             <param name="dn"></param>

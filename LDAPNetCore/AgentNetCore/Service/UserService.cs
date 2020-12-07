@@ -120,7 +120,7 @@ namespace AgentNetCore.Service
                 return false;
             }
         }
-        public void Delete(string dn, string samName)
+        public bool Delete(string dn, string samName)
         {
             UserRepository ldapUser = new UserRepository(_mySQLContext);
             CredentialRepository credential = new CredentialRepository(_mySQLContext);
@@ -131,12 +131,17 @@ namespace AgentNetCore.Service
             {
                 if (Exist(dn, samName))
                 {
-                    ldapUser.Delete(credential, result);
+                    return (ldapUser.Delete(credential, result));
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (Exception e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
         }
         public UserVO Inactive(string dn, string samName)
@@ -183,14 +188,18 @@ namespace AgentNetCore.Service
                 return null;
             }
         }
-        public void ResetPass(string dn, string samName, string pass)
+        public bool ResetPass(string dn, string samName, string pass)
         {
             if (Exist(dn, samName))
             {
                 UserRepository ldapUser = new UserRepository(_mySQLContext);
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
                 credential.DN = dn;
-                ldapUser.ResetPassBySamName(credential, samName, pass);
+                return (ldapUser.ResetPassBySamName(credential, samName, pass));
+            }
+            else
+            {
+                return false;
             }
         }
         public List<UserVO> GetUsers(string groupDn)

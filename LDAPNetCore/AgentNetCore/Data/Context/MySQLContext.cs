@@ -14,11 +14,6 @@ namespace AgentNetCore.Context
         {
 
         }
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //    base.OnModelCreating(modelBuilder);
-        //    modelBuilder.Entity<Server>().HasData(new Server {});
-        //}
         public DbSet<Server> Servers { get; set; }
         public DbSet<Credential> Credentials { get; set; }
         public DbSet<Configuration> Configurations { get; set; }

@@ -1,8 +1,10 @@
 ﻿using AgentNetCore.Context;
+using AgentNetCore.Model;
+using System.Collections.Generic;
 
 namespace AgentNetCore.Repository.Interface
 {
-    public interface IUserRepository : IRepository
+    public class IUserRepository : IRepository//<User>
     {
         
     }

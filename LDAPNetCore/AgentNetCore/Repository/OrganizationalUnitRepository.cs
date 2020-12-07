@@ -14,7 +14,7 @@ namespace AgentNetCore.Context
         public OrganizationalUnitRepository(MySQLContext mySQLContext)
         {
             _mySQLContext = mySQLContext;
-            CreateMarvelStructure(); //Cria Mock
+            //CreateMarvelStructure(); //Cria Mock
         }
         #region CRUD
         public OrganizationalUnit Create(OrganizationalUnit orgUnit)
@@ -25,26 +25,47 @@ namespace AgentNetCore.Context
                 credential.DN = orgUnit.DistinguishedName;
                 DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
                 DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = ("OU=" + orgUnit.SamAccountName);
+                search.Filter = ("OU=" + orgUnit.Ou);
                 SearchResult result = search.FindOne();
                 if (result == null)
                 {
-                    DirectoryEntry newOrganizationalUnit = dirEntry.Children.Add("OU=" + orgUnit.SamAccountName, ObjectApplication.Category.organizationalUnit.ToString());
-                    newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
-                    //newOrganizationalUnit.Properties["l"].Value = orgUnit.City; //"Caxias do Sul";
-                    //newOrganizationalUnit.Properties["st"].Value = orgUnit.State; //"Rio Grande do Sul";
-                    //newOrganizationalUnit.Properties["street"].Value = orgUnit.Street; //"Rua para Teste";
-                    //newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode; //"95095495";
-                    //newOrganizationalUnit.Properties["c"].Value = orgUnit.Country; //"US";
-                    //newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager; //"CN=" + "Ghost Rider" + "," + "cn=Users,dc=marveldomain,dc=local";
+                    DirectoryEntry newOrganizationalUnit = dirEntry.Children.Add("OU=" + orgUnit.Ou, ObjectApplication.Category.organizationalUnit.ToString());
+                    if (!String.IsNullOrWhiteSpace(orgUnit.Description))
+                    {
+                        newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.City))
+                    {
+                        newOrganizationalUnit.Properties["l"].Value = orgUnit.City;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["st"].Value = orgUnit.State;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.Street))
+                    {
+                        newOrganizationalUnit.Properties["street"].Value = orgUnit.Street;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.PostalCode))
+                    {
+                        newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.Country))
+                    {
+                        newOrganizationalUnit.Properties["c"].Value = orgUnit.Country;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.Manager))
+                    {
+                        newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager;
+                    }
                     newOrganizationalUnit.CommitChanges();
                     dirEntry.Close();
                     newOrganizationalUnit.Close();
-                    return orgUnit;
+                    return FindByName(credential, orgUnit.Name);
                 }
                 else
                 {
-                    Console.WriteLine("\r\nO Usuario ja existe no contexto:\r\n\t");
+                    Console.WriteLine("\r\nO Unidade Organizacional já existe no contexto:\r\n\t");
                     return null;
                 }
             }
@@ -88,12 +109,44 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-
-        public OrganizationalUnit FindByName(string domain, string nameOU)
+        private OrganizationalUnit FindOne(CredentialRepository credential, string campo, string valor)
         {
             try
             {
-                return FindOne(domain, "ou", nameOU);
+                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                DirectorySearcher search = new DirectorySearcher(dirEntry);
+                search.Filter = "(" + campo + "=" + valor + ")";
+                var orgUnit = GetResult(search.FindOne());
+                if ((orgUnit.DistinguishedName == null) && (orgUnit.SamAccountName == null)) return null;
+                return orgUnit;
+                //CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                //ServerRepository sr = new ServerRepository(_mySQLContext);
+                //OrganizationalUnit organizationalUnit = new OrganizationalUnit();
+                //credential.DN = dn;
+                //DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
+                //DirectorySearcher search = new DirectorySearcher(dirEntry);
+                //search.Filter = "(" + campo + "=" + valor + ")";
+                //search.SearchScope = SearchScope.Subtree;
+                //search.PropertiesToLoad.Add("name");
+                //search.PropertiesToLoad.Add("displayName");
+                //search.PropertiesToLoad.Add("description");
+                //search.PropertiesToLoad.Add("samaccountname");
+                //search.PropertiesToLoad.Add("managedby");
+                //search.PropertiesToLoad.Add("adspath");
+                //search.PropertiesToLoad.Add("l");
+                //search.PropertiesToLoad.Add("st");
+                //search.PropertiesToLoad.Add("postalcode");
+                //search.PropertiesToLoad.Add("c");
+                //search.PropertiesToLoad.Add("mail");
+                //search.PropertiesToLoad.Add("objectsid");
+                //search.PropertiesToLoad.Add("whenchanged");
+                //search.PropertiesToLoad.Add("whencreated");
+                //search.PropertiesToLoad.Add("distinguishedname");
+                //search.PropertiesToLoad.Add("street");
+                //search.PropertiesToLoad.Add("iscriticalsystemobject");
+                //search.PropertiesToLoad.Add("cn");
+                //organizationalUnit = GetResult(search.FindOne());
+                //return organizationalUnit;
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
@@ -101,38 +154,13 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        private OrganizationalUnit FindOne(string dn, string campo, string valor)
+        public OrganizationalUnit FindByName(string dn, string name)
         {
             try
             {
                 CredentialRepository credential = new CredentialRepository(_mySQLContext);
-                ServerRepository sr = new ServerRepository(_mySQLContext);
-                OrganizationalUnit organizationalUnit = new OrganizationalUnit();
                 credential.DN = dn;
-                DirectoryEntry dirEntry = new DirectoryEntry(credential.Path, credential.User, credential.Pass);
-                DirectorySearcher search = new DirectorySearcher(dirEntry);
-                search.Filter = "(" + campo + "=" + valor + ")";
-                search.SearchScope = SearchScope.Subtree;
-                search.PropertiesToLoad.Add("name");
-                search.PropertiesToLoad.Add("displayName");
-                search.PropertiesToLoad.Add("description");
-                search.PropertiesToLoad.Add("samaccountname");
-                search.PropertiesToLoad.Add("managedby");
-                search.PropertiesToLoad.Add("adspath");
-                search.PropertiesToLoad.Add("l");
-                search.PropertiesToLoad.Add("st");
-                search.PropertiesToLoad.Add("postalcode");
-                search.PropertiesToLoad.Add("c");
-                search.PropertiesToLoad.Add("mail");
-                search.PropertiesToLoad.Add("objectsid");
-                search.PropertiesToLoad.Add("whenchanged");
-                search.PropertiesToLoad.Add("whencreated");
-                search.PropertiesToLoad.Add("distinguishedname");
-                search.PropertiesToLoad.Add("street");
-                search.PropertiesToLoad.Add("iscriticalsystemobject");
-                search.PropertiesToLoad.Add("cn");
-                organizationalUnit = GetResult(search.FindOne());
-                return organizationalUnit;
+                return FindOne(credential, "name", name);
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
@@ -140,6 +168,33 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
+        public OrganizationalUnit FindByName(CredentialRepository credential, string name)
+        {
+            try
+            {
+                return FindOne(credential, "name", name);
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+        public OrganizationalUnit FindByOu(string dn, string ou)
+        {
+            try
+            {
+                CredentialRepository credential = new CredentialRepository(_mySQLContext);
+                credential.DN = dn;
+                return FindOne(credential, "ou", ou);
+            }
+            catch (System.DirectoryServices.DirectoryServicesCOMException e)
+            {
+                Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return null;
+            }
+        }
+
         public List<OrganizationalUnit> FindByDn(string dn)
         {
             CredentialRepository credential = new CredentialRepository(_mySQLContext);
@@ -159,17 +214,38 @@ namespace AgentNetCore.Context
                 if (result != null)
                 {
                     DirectoryEntry newOrganizationalUnit = result.GetDirectoryEntry();
-                    newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
-                    newOrganizationalUnit.Properties["l"].Value = orgUnit.City; //"Caxias do Sul";
-                    newOrganizationalUnit.Properties["st"].Value = orgUnit.State; //"Rio Grande do Sul";
-                    newOrganizationalUnit.Properties["street"].Value = orgUnit.Street; //"Rua para Teste";
-                    newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode; //"95095495";
-                    newOrganizationalUnit.Properties["c"].Value = orgUnit.Country; //"US";
-                    newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager; //"CN=" + "Ghost Rider" + "," + "cn=Users,dc=marveldomain,dc=local";
+                    if (!String.IsNullOrWhiteSpace(orgUnit.Description))
+                    {
+                        newOrganizationalUnit.Properties["description"].Value = orgUnit.Description;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.City))
+                    {
+                        newOrganizationalUnit.Properties["l"].Value = orgUnit.City;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["st"].Value = orgUnit.State;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["street"].Value = orgUnit.Street;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["postalcode"].Value = orgUnit.PostalCode;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["c"].Value = orgUnit.Country;
+                    }
+                    if (!String.IsNullOrWhiteSpace(orgUnit.State))
+                    {
+                        newOrganizationalUnit.Properties["managedBy"].Value = orgUnit.Manager;
+                    }
                     newOrganizationalUnit.CommitChanges();
                     dirEntry.Close();
                     newOrganizationalUnit.Close();
-                    return FindOne(orgUnit.DistinguishedName, "ou", orgUnit.SamAccountName);
+                    return FindByName(credential, orgUnit.Name);
                 }
                 else
                 {
@@ -183,7 +259,7 @@ namespace AgentNetCore.Context
                 return null;
             }
         }
-        public void Delete(OrganizationalUnit orgUnit)
+        public bool Delete(OrganizationalUnit orgUnit)
         {
             try
             {
@@ -196,11 +272,17 @@ namespace AgentNetCore.Context
                 if (orgUnitFind != null)
                 {
                     orgUnitFind.DeleteTree();
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (System.DirectoryServices.DirectoryServicesCOMException e)
             {
                 Console.WriteLine("\r\nUnexpected exception occurred:\r\n\t" + e.GetType() + ":" + e.Message);
+                return false;
             }
         }
         public void CreateMarvelStructure()

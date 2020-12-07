@@ -108,7 +108,7 @@ namespace AgentNetCore.Controllers
             if (group == null) return BadRequest();
             var newGroup = new ObjectResult(this._groupService.Create(group));
             if (newGroup.Value == null) return Conflict();
-            return newGroup;
+            return Ok(newGroup);
         }
         /// <summary>
         /// ATUALIZAR um Grupo
@@ -134,7 +134,7 @@ namespace AgentNetCore.Controllers
         /// DELETAR um Grupo
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="dn"></param>
@@ -149,7 +149,7 @@ namespace AgentNetCore.Controllers
         {
             if (!string.IsNullOrWhiteSpace(dn) && !string.IsNullOrWhiteSpace(samName))
             {
-                if(this._groupService.Delete(dn, samName)) return NoContent(); ;
+                if (this._groupService.Delete(dn, samName)) return NoContent();
                 return Conflict();
             }
             return BadRequest();
@@ -158,7 +158,7 @@ namespace AgentNetCore.Controllers
         /// ADICIONAR um Usuário em um Grupo
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="userDn"></param>
@@ -184,7 +184,7 @@ namespace AgentNetCore.Controllers
         /// REMOVER um Usuário em um Grupo
         /// </summary>
         /// <remarks>
-        /// Não há retorno de objetos nesse método
+        /// Retorno de HTTP code
         /// </remarks>
         /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="userDn"></param>
@@ -210,9 +210,9 @@ namespace AgentNetCore.Controllers
         /// ALTERAR o Usuário de um Grupo Antigo para um Grupo Novo
         /// </summary>
         /// <remarks>
-        /// Retorna uma lista de objetos no formato GroupVO
+        /// Retorno de HTTP code
         /// </remarks>
-        /// <returns>O retorno desse serviço é uma lista de GroupVO encontrados no Usuário informado</returns>
+        /// <returns>O retorno desse serviço é código HTTP</returns>
         /// <param name="userDn"></param>
         /// <param name="newGroupDn"></param>
         /// <param name="oldGroupDn"></param>
@@ -226,10 +226,11 @@ namespace AgentNetCore.Controllers
         [TypeFilter(typeof(HyperMediaFilter))]
         public IActionResult ChangeGroup([FromQuery] string userDn, [FromQuery] string newGroupDn, [FromQuery] string oldGroupDn)
         {
-            if ((!string.IsNullOrWhiteSpace(userDn)) && (!string.IsNullOrWhiteSpace(newGroupDn))&& (!string.IsNullOrWhiteSpace(oldGroupDn)))
+            if ((!string.IsNullOrWhiteSpace(userDn)) && (!string.IsNullOrWhiteSpace(newGroupDn)) && (!string.IsNullOrWhiteSpace(oldGroupDn)))
             {
-                this._groupService.ChangeGroup(userDn, newGroupDn, oldGroupDn);
-                return Ok();
+                if (this._groupService.ChangeGroup(userDn, newGroupDn, oldGroupDn)) return Ok();
+                return Conflict();
+
             }
             return BadRequest();
         }
