@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
-using System.Security;
 using Tapioca.HATEOAS;
 
 namespace AgentNetCore.Controllers
